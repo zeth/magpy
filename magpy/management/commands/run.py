@@ -9,9 +9,9 @@ from magpy.server.urlloader import URLLoader
 from magpy.management import BaseCommand, CommandError
 
 class Command(BaseCommand):
-    """Add a setting to the database."""
-    help = ('Add a key and a value to the given setting category.')
-    args = '[category setting value]'
+    """Run the REST server."""
+    help = ('Run the REST server.')
+    args = '[port]'
 
     def handle(self, *args, **kwargs):
         loader = URLLoader()
