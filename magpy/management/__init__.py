@@ -66,9 +66,10 @@ def get_commands():
     """
     global _COMMANDS  # pylint: disable-msg=W0603
     if _COMMANDS is None:
+        # Find the builtin commands
+        magpy_path = find_management_module('magpy')
         _COMMANDS = dict([(name, 'magpy') for \
-                              name in find_commands(__path__[0])])
-
+                              name in find_commands(magpy_path)])
         # Find the installed apps
         database = Database()
         apps = database.get_app_list()
