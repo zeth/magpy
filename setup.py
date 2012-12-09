@@ -14,8 +14,9 @@ setup(name='Magpy',
                 'magpy.management.commands',
                 'magpy.conf',
                 'magpy.conf.app_template',
-                'magpy.conf.app_template.app',
-                'magpy.conf.app_template.app.management',
-                'magpy.conf.app_template.app.management.commands'],
-      scripts=['mag.py',]
+                'magpy.conf.app_template.app_name',
+                'magpy.conf.app_template.app_name.management',
+                'magpy.conf.app_template.app_name.management.commands'],
+      scripts=['mag.py',],
+      package_data={'magpy.conf.app_template': ['README.md']},
      )
