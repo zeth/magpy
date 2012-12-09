@@ -1,4 +1,4 @@
 README
 ------
 
-Introduce your application here.
+Introduce ${app_name} here.
