@@ -6,6 +6,12 @@ import os
 from optparse import make_option
 import errno
 
+# Pylint says string is deprecated
+# but only some of it is
+# www.logilab.org/2481
+# pylint: disable=W0402
+from string import Template
+
 from magpy.management import BaseCommand, CommandError
 
 
