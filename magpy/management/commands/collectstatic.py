@@ -8,20 +8,20 @@ from optparse import make_option
 #from tempfile import mkdtemp
 from shutil import copy
 
+
 class Command(BaseCommand):
     """Collect static files into the public web directory."""
     help = ('Collect static files into the public web directory.')
 
     option_list = BaseCommand.option_list + (
         make_option("-p", "--pure",
-                  action="store_false", dest="appify", default=True,
-                  help="Do not modify the paths, "
+                    action="store_false", dest="appify", default=True,
+                    help="Do not modify the paths, "
                     "i.e. do not group them by application."),
         make_option("-t", "--no_time",
-                  action="store_false", dest="check_time", default=True,
-                  help="Do not check timestamps, "
-                    "just overwrite all files."),
-        )
+                    action="store_false", dest="check_time", default=True,
+                    help="Do not check timestamps, "
+                    "just overwrite all files."),)
 
     def handle(self, *args, **options):
         """Collect the static files of an application."""
@@ -56,17 +56,15 @@ class Command(BaseCommand):
 
         # 4. Copy the files
         for source, target in static_files:
-            print "source", source
-            print "target", target
             # Make sure the target directory exist
             target_dir = os.path.dirname(target)
-            print "dir", target_dir
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
             # Copy the file
             copy(source, target)
 
-    def check_newer(self, file_tuple):
+    @staticmethod
+    def check_newer(file_tuple):
         """Check if the source is newer than the target."""
         source, target = file_tuple
         # if target does not exist, then the source is newer
@@ -77,7 +75,8 @@ class Command(BaseCommand):
             return True
         return False
 
-    def get_path(self, app):
+    @staticmethod
+    def get_path(app):
         """Get the static files path of an application."""
         try:
             loader = get_loader(app)
@@ -87,7 +86,8 @@ class Command(BaseCommand):
             return
         return os.path.join(loader.filename, 'static')
 
-    def get_filenames(self, path, target, app, appify):
+    @staticmethod
+    def get_filenames(path, target, app, appify):
         """Get all the filenames in a path."""
         file_list = []
         for branch in os.walk(path):

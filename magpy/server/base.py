@@ -27,7 +27,7 @@ class App(tornado.web.Application):
             debug=True,
             io_loop=ioloop,
             cookie_secret=COOKIE)
-        self.connection = motor.MotorConnection().open_sync()
+        self.connection = motor.MotorClient().open_sync()
 
         # pylint: disable=W0142
         tornado.web.Application.__init__(self, handlers, **settings)
