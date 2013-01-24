@@ -10,10 +10,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.autoreload
-from tornado.options import define, options
 import motor
-
-#define("port", default=8000, help="run on the given port", type=int)
 
 
 class App(tornado.web.Application):

@@ -8,6 +8,7 @@ from magpy.server.urls import URLS
 from magpy.server.urlloader import URLLoader
 from magpy.management import BaseCommand, CommandError
 
+
 class Command(BaseCommand):
     """Run the REST server."""
     help = ('Run the REST server.')

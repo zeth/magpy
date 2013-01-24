@@ -5,6 +5,7 @@ import base64
 import uuid
 from magpy.management import BaseCommand, CommandError
 
+
 class Command(BaseCommand):
     """Make a cookie secret file."""
     help = ('Make a cookie secret file.')
