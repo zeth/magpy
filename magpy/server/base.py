@@ -13,32 +13,35 @@ import tornado.autoreload
 from tornado.options import define, options
 import motor
 
-define("port", default=8000, help="run on the given port", type=int)
+#define("port", default=8000, help="run on the given port", type=int)
 
-
-# TODO: Move cookie secret out of here to userspace.
-
-COOKIE = open('cookie.txt').read()
 
 class App(tornado.web.Application):
     """Simple Web Application."""
-    def __init__(self, ioloop, handlers):
+    def __init__(self, ioloop, handlers, cookie_secret):
         settings = dict(
             debug=True,
             io_loop=ioloop,
-            cookie_secret=COOKIE)
+            cookie_secret=cookie_secret)
         self.connection = motor.MotorClient().open_sync()
 
         # pylint: disable=W0142
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-def main(handlers):
+def main(handlers, cookie_secret=None, port=8000):
     """Site startup boilerplate."""
+    if not cookie_secret:
+        cookie_secret = open('cookie.txt').read()
     tornado.options.parse_command_line()
     ioloop = tornado.ioloop.IOLoop.instance()
     http_server = tornado.httpserver.HTTPServer(App(ioloop,
-                                                    handlers))
-    http_server.listen(options.port)
+                                                    handlers,
+                                                    cookie_secret))
+    http_server.listen(port)
     tornado.autoreload.start()
     ioloop.start()
+
+if __name__ == '__main__':
+    print "To run the server type:\n" \
+        "mag.py run"
