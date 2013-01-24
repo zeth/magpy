@@ -18,6 +18,7 @@ from string import Template
 from magpy.management import BaseCommand, CommandError
 import magpy
 
+
 class Command(BaseCommand):
     """Command to start a new Mag application."""
     help = ("Creates a Mag app directory structure for the given app "
@@ -31,7 +32,7 @@ class Command(BaseCommand):
                     help='The file name(s) to render. '
                     'Separate multiple extensions with commas, or use '
                     '-n multiple times.'),)
-    valid_extensions = ('md', 'py')
+    valid_extensions = ('md', 'py', '.html')
 
     def handle(self, app_name=None, target=None, **options):
         verbosity = int(options.get('verbosity'))
