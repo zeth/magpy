@@ -20,6 +20,6 @@ setup(name='Magpy',
       scripts=['mag.py',],
       package_data={'magpy.conf.app_template': ['README.md'],
                     'magpy.conf.app_template.app_name': ['static/index.html'],
-                    'magpy': ['static/js/*.js'],
+                    'magpy': ['static/js/mag.js'],
                     },
      )

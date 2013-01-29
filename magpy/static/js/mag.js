@@ -14,9 +14,9 @@
 
 */
 
-if (typeof SITE_DOMAIN === 'undefined') {
-    SITE_DOMAIN = 'localhost';
-}
+    if (typeof SITE_DOMAIN === 'undefined') {
+        SITE_DOMAIN = 'localhost';
+    }
 
 /** Array.indexOf for IE before IE9 */
 if (!Array.prototype.indexOf) {
@@ -123,9 +123,9 @@ if (!Array.prototype.map) {
     };
 }
 
-/** RAVEN is a REST/JSON based storage system
+/** MAGPY is a REST/JSON based storage system
     aimed particularly at textual data, used by ITSEE's projects. */
-var RAVEN = (function () {
+var MAG = (function () {
     "use strict";
     return {
         // body of module here
@@ -180,7 +180,7 @@ var RAVEN = (function () {
                     works with multiple class names with space separaters*/
                 has_className: function (element, className) {
                     var elementClassName;
-                    if (RAVEN.TYPES.is_element(element)) {
+                    if (MAG.TYPES.is_element(element)) {
                         elementClassName = element.className.toLowerCase();
                         return (elementClassName.length > 0 &&
                                 (elementClassName === className.toLowerCase() ||
@@ -194,11 +194,11 @@ var RAVEN = (function () {
                 /** Adds supplied className to supplied element */
                 add_className: function (element, className) {
                     var classNameString;
-                    if (RAVEN.TYPES.is_element(element)) {
-                        if (!RAVEN.ELEMENT.has_className(element, className)) {
+                    if (MAG.TYPES.is_element(element)) {
+                        if (!MAG.ELEMENT.has_className(element, className)) {
                             classNameString = element.className += ' ' +
                                 className;
-                            element.className = RAVEN.TEMPLATE.trim(
+                            element.className = MAG.TEMPLATE.trim(
                                 classNameString
                             );
                         }
@@ -208,8 +208,8 @@ var RAVEN = (function () {
 
                 /** Removes supplied className from supplied element */
                 remove_className: function (element, className) {
-                    if (RAVEN.TYPES.is_element(element)) {
-                        element.className = RAVEN.TEMPLATE.trim(
+                    if (MAG.TYPES.is_element(element)) {
+                        element.className = MAG.TEMPLATE.trim(
                             element.className.replace(
                                 new RegExp('(^| )' + className + '( |$)'),
                                 ' '
@@ -230,6 +230,16 @@ var RAVEN = (function () {
                     }
                     return false;
                 },
+
+                insertAfter: function (newElement,targetElement) {
+                    var parent = targetElement.parentNode;
+                    if(parent.lastchild == targetElement) {
+                        parent.appendChild(newElement);
+                    }
+                    else {
+                        parent.insertBefore(newElement, targetElement.nextSibling);
+                    }
+                }
 
                 // End of submodule ELEMENT
             };
@@ -297,10 +307,10 @@ var RAVEN = (function () {
                         options = {};
                     }
                     options.method = "GET";
-                    RAVEN._REQUEST.request(
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_url"
-                        ) + '_history/?' + RAVEN.URL.build_query_string(
+                    MAG._REQUEST.request(
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_url"
+                        ) + '_history/?' + MAG.URL.build_query_string(
                             {
                                 'document_model': resource,
                                 'document_id': id
@@ -318,11 +328,11 @@ var RAVEN = (function () {
                         options = {};
                     }
                     options.method = "GET";
-                    RAVEN._REQUEST.request(
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_url"
+                    MAG._REQUEST.request(
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_url"
                         ) + '_history/' + history_id + '/?' +
-                            RAVEN.URL.build_query_string(
+                            MAG.URL.build_query_string(
                                 {
                                     'document_model': resource_type,
                                 }
@@ -347,9 +357,9 @@ var RAVEN = (function () {
                         options = {};
                     }
                     options.method = "HEAD";
-                    RAVEN._REQUEST.request(
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_simple_resource_instance_url",
+                    MAG._REQUEST.request(
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_simple_resource_instance_url",
                             resource + '/' + id,
                             [resource, id]
                         ),
@@ -371,8 +381,8 @@ var RAVEN = (function () {
                     }
 
                     // Make URL
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_simple_resource_instance_url",
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_simple_resource_instance_url",
                         resource + '/' + id,
                         [resource, id]
                     );
@@ -382,42 +392,52 @@ var RAVEN = (function () {
                         // No optional callback
                         // Just cache the resource
                         if (
-                            !RAVEN._STORAGE.is_stored_item(api_url) ||
+                            !MAG._STORAGE.is_stored_item(api_url) ||
                                 (options.force_reload === true)
                         ) {
-                            options.success = RAVEN._REST.cache_api_data;
-                        } // End if !(RAVEN._STORAGE.is_stored_item(api_url))
+                            options.success = MAG._REST.cache_api_data;
+                        } // End if !(MAG._STORAGE.is_stored_item(api_url))
 
                     } else {
                         // We have an optional callback so use it.
 
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 options.force_reload === false
                         ) {
                             options.success(
-                                RAVEN._STORAGE.get_data_from_storage(api_url)
+                                MAG._STORAGE.get_data_from_storage(api_url)
                             );
                             return;
                         }
 
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_api_data(data);
+                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // if (typeof optional_callback === 'undefined')
                     // So now we have a callback.
 
                     options.method = "GET";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
 
-                /* Get a list and optional callback, and cache the list */
+                /* Get a list and optional callback, and cache the list
+                   resource - resource type
+                   options - optional arguments
+                   - criteria - a SON object specifying elements which must
+                   be present for a document to be included in
+                   the result set
+                   - fields - a list of field names that should be returned
+                   in the result set (“_id” will always be included)
+                   - force_reload - do not return any locally cached version
+
+                */
                 apply_to_list_of_resources: function (resource,
                                                       options) {
                     var base_url, url, api_url, full_url,
-                        callback, request, criteria;
+                    callback, request, criteria, query;
                     if (typeof options === "undefined") {
                         options = {};
                     }
@@ -425,39 +445,49 @@ var RAVEN = (function () {
                         options.force_reload = false;
                     }
 
-                    base_url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_url"
+                    base_url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_url"
                     );
                     url = base_url + resource + '/';
+
+                    query = {}
+
                     if (typeof options.criteria !== 'undefined') {
-                        url += '?';
-                        url += RAVEN.URL.build_query_string(options.criteria);
-                        criteria = options.criteria;
+                        query = options.criteria;
                         delete options.criteria;
                     }
+                    if (typeof options.fields !== 'undefined') {
+                        query['_fields'] = options.fields
+                        delete options.fields;
+                    }
+                    if (!(MAG.TYPES.is_empty_object(query))) {
+                        url += '?';
+                        url += MAG.URL.build_query_string(query);
+                    }
+
                     api_url = 'api:' + url;
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource list
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url)
+                            MAG._STORAGE.is_stored_item(api_url)
                                 && (options.force_reload === false)
                         ) {
                             // Nothing to do
                             return;
                         }
                         options.success = function (data) {
-                            RAVEN._REST.cache_api_list(data,
+                            MAG._REST.cache_api_list(data,
                                                        resource,
                                                        criteria);
                         };
                     } else {
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 options.force_reload === false
                         ) {
                             options.success(
-                                RAVEN._STORAGE.get_data_from_storage(
+                                MAG._STORAGE.get_data_from_storage(
                                     api_url
                                 )
                             );
@@ -465,7 +495,7 @@ var RAVEN = (function () {
                         }
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_api_list(data,
+                            MAG._REST.cache_api_list(data,
                                                        resource,
                                                        criteria);
                             callback(data);
@@ -473,17 +503,17 @@ var RAVEN = (function () {
                     } // End if (typeof optional_callback === 'undefined')
 
                     options.method = "GET";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
 
                 /* Create resource and cache the local copy
                    resource - the resource type
                    instance - the instance _id
                    options - optional arguments, including:
-                       options.success - callback function for success
-                       options.error - callback function for error
-                       options.comment - optional comment
-                 */
+                   options.success - callback function for success
+                   options.error - callback function for error
+                   options.comment - optional comment
+                */
                 create_resource: function (resource,
                                            instance,
                                            options) {
@@ -492,8 +522,8 @@ var RAVEN = (function () {
                         options = {};
                     }
                     /* Make a new instance */
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_url"
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_url"
                     );
                     url += resource;
                     url += '/';
@@ -501,11 +531,11 @@ var RAVEN = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = RAVEN._REST.cache_api_data;
+                        options.success = MAG._REST.cache_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_api_data(data);
+                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -517,17 +547,17 @@ var RAVEN = (function () {
 
                     options.method = "POST";
                     options.data = JSON.stringify(instance);
-                    RAVEN._REQUEST.request(url,
+                    MAG._REQUEST.request(url,
                                            options);
                 },
 
                 /** Update resource and cache the local copy
-                   resource - the resource type
-                   instance - the instance object
-                   options - optional arguments, including:
-                       options.success - callback function for success
-                       options.error - callback function for error
-                       options.comment - optional comment
+                    resource - the resource type
+                    instance - the instance object
+                    options - optional arguments, including:
+                    options.success - callback function for success
+                    options.error - callback function for error
+                    options.comment - optional comment
                 */
                 update_resource: function (resource,
                                            instance,
@@ -537,8 +567,8 @@ var RAVEN = (function () {
                     if (typeof options === "undefined") {
                         options = {};
                     }
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_simple_resource_instance_url",
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_simple_resource_instance_url",
                         resource + '/' + instance._id,
                         [resource, instance._id]
                     );
@@ -546,11 +576,11 @@ var RAVEN = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = RAVEN._REST.cache_api_data;
+                        options.success = MAG._REST.cache_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_api_data(data);
+                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -562,15 +592,15 @@ var RAVEN = (function () {
                     options.data = JSON.stringify(instance);
                     options.method = "PUT";
 
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
                 /** Delete multiple instances of a resource.
-                   resource - the resource type
-                   ids - ids of objects to be deleted
-                   options - optional arguments, including:
-                       options.success - callback function for success
-                       options.error - callback function for error
-                       options.comment - optional comment
+                    resource - the resource type
+                    ids - ids of objects to be deleted
+                    options - optional arguments, including:
+                    options.success - callback function for success
+                    options.error - callback function for error
+                    options.comment - optional comment
                 */
 
                 delete_resources: function (resource,
@@ -588,14 +618,14 @@ var RAVEN = (function () {
                     options.data = JSON.stringify(options.data);
 
                     // Make URL
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_url"
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_url"
                     ) + resource + '/';
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just delete the resource
                         options.success = function () {
-                            RAVEN._REST.delete_multiple_cached_data(
+                            MAG._REST.delete_multiple_cached_data(
                                 resource,
                                 ids
                             );
@@ -603,7 +633,7 @@ var RAVEN = (function () {
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.delete_multiple_cached_data(
+                            MAG._REST.delete_multiple_cached_data(
                                 resource,
                                 ids
                             );
@@ -611,7 +641,7 @@ var RAVEN = (function () {
                         };
                     }
                     options.method = "DELETE";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
                 /** Update multiple instances of a resource,
                     in this method.
@@ -623,10 +653,10 @@ var RAVEN = (function () {
                     resource - the resource type
                     instances - an array of updated instances
                     options - optional arguments, including:
-                        options.success - callback function for success
-                        options.error - callback function for error
-                        options.comment - optional comment
-                 */
+                    options.success - callback function for success
+                    options.error - callback function for error
+                    options.comment - optional comment
+                */
                 update_resources: function (resource,
                                             instances,
                                             options) {
@@ -634,18 +664,18 @@ var RAVEN = (function () {
                     if (typeof options === "undefined") {
                         options = {};
                     }
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_url"
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_url"
                     ) + resource + '/';
 
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = RAVEN._REST.cache_multiple_instances;
+                        options.success = MAG._REST.cache_multiple_instances;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_multiple_instances(data);
+                            MAG._REST.cache_multiple_instances(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -656,7 +686,7 @@ var RAVEN = (function () {
                     }
                     options.data = JSON.stringify(options_data);
                     options.method = "PUT";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
 
                 /** Update a field or fields in multiple instances
@@ -678,10 +708,10 @@ var RAVEN = (function () {
                     to be {$set: {key, value}
 
                     options - optional arguments, including:
-                        options.success - callback function for success
-                        options.error - callback function for error
-                        options.comment - optional comment
-                 */
+                    options.success - callback function for success
+                    options.error - callback function for error
+                    options.comment - optional comment
+                */
                 update_fields: function (resource,
                                          ids,
                                          fields,
@@ -690,17 +720,17 @@ var RAVEN = (function () {
                     if (typeof options === "undefined") {
                         options = {};
                     }
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_url"
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_url"
                     ) + resource + '/';
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = RAVEN._REST.cache_multiple_instances;
+                        options.success = MAG._REST.cache_multiple_instances;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_multiple_instances(data);
+                            MAG._REST.cache_multiple_instances(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -713,7 +743,7 @@ var RAVEN = (function () {
                     }
                     options.data = JSON.stringify(options_data);
                     options.method = "PUT";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
 
                 /** Update a field or fields in multiple instances
@@ -733,10 +763,10 @@ var RAVEN = (function () {
                     to be {$set: {key, value}
 
                     options - optional arguments, including:
-                        options.success - callback function for success
-                        options.error - callback function for error
-                        options.comment - optional comment
-                 */
+                    options.success - callback function for success
+                    options.error - callback function for error
+                    options.comment - optional comment
+                */
                 update_field_selection: function (resource,
                                                   criteria,
                                                   fields,
@@ -745,17 +775,17 @@ var RAVEN = (function () {
                     if (typeof options === "undefined") {
                         options = {};
                     }
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_url"
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_url"
                     ) + resource + '/';
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = RAVEN._REST.cache_multiple_instances;
+                        options.success = MAG._REST.cache_multiple_instances;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.cache_multiple_instances(data);
+                            MAG._REST.cache_multiple_instances(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -768,7 +798,7 @@ var RAVEN = (function () {
                     }
                     options.data = JSON.stringify(options_data);
                     options.method = "PUT";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
 
                 /* Delete a resource from server, and local copy */
@@ -780,24 +810,24 @@ var RAVEN = (function () {
                         options = {};
                     }
                     // Make URL
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_simple_resource_instance_url",
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_simple_resource_instance_url",
                         resource + '/' + id,
                         [resource, id]
                     );
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just delete the resource
-                        options.success = RAVEN._REST.delete_api_data;
+                        options.success = MAG._REST.delete_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._REST.delete_api_data(data);
+                            MAG._REST.delete_api_data(data);
                             callback(data);
                         };
                     }
                     options.method = "DELETE";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 }
                 // End of submodule
             };
@@ -825,14 +855,14 @@ var RAVEN = (function () {
                         options.success = function () {};
                     }
                     // Make URL
-                    url = RAVEN._STORAGE.get_data_from_storage_or_function(
-                        "RAVEN._REST.get_api_simple_resource_instance_url",
+                    url = MAG._STORAGE.get_data_from_storage_or_function(
+                        "MAG._REST.get_api_simple_resource_instance_url",
                         resource + '/' + id,
                         [resource, id]
                     ) + 'uniquify/';
                     api_url = 'api:' + url;
                     options.method = "GET";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 }
                 // End of submodule
             };
@@ -872,7 +902,7 @@ var RAVEN = (function () {
                     options.error
                     options.force_reload
 
-                 */
+                */
                 get_user_info: function (options) {
                     if (typeof options === "undefined") {
                         options = {};
@@ -889,35 +919,35 @@ var RAVEN = (function () {
                         // No optional callback
                         // Just cache the resource
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 (options.force_reload === false)
                         ) {
                             // Nothing to do
                             return;
                         }
                         options.success = function (data) {
-                            RAVEN._STORAGE.store_data(api_url, data);
+                            MAG._STORAGE.store_data(api_url, data);
                         };
                     } else {
                         // We have an optional callback so use it.
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 options.force_reload === false
                         ) {
                             options.success(
-                                RAVEN._STORAGE.get_data_from_storage(api_url)
+                                MAG._STORAGE.get_data_from_storage(api_url)
                             );
                             return;
                         }
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._STORAGE.store_data(api_url, data);
+                            MAG._STORAGE.store_data(api_url, data);
                             callback(data);
                         };
                     } // if (typeof optional_callback === 'undefined')
                     // So now we have a callback.
                     options.method = "GET";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
 
                 /** Check permission
@@ -942,7 +972,7 @@ var RAVEN = (function () {
                         options.force_reload = false;
                     }
 
-                    path = RAVEN.TEMPLATE.substitute(
+                    path = MAG.TEMPLATE.substitute(
                         "/auth/checkpermission/{resource}/{permission}/",
                         {resource: resource, permission: permission}
                     );
@@ -954,35 +984,35 @@ var RAVEN = (function () {
                         // No optional callback
                         // Just cache the resource
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 (options.force_reload === false)
                         ) {
                             // Nothing to do
                             return;
                         }
                         options.success = function (data) {
-                            RAVEN._STORAGE.store_data(api_url, data);
+                            MAG._STORAGE.store_data(api_url, data);
                         };
                     } else {
                         // We have an optional callback so use it.
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 options.force_reload === false
                         ) {
                             options.success(
-                                RAVEN._STORAGE.get_data_from_storage(api_url)
+                                MAG._STORAGE.get_data_from_storage(api_url)
                             );
                             return;
                         }
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._STORAGE.store_data(api_url, data);
+                            MAG._STORAGE.store_data(api_url, data);
                             callback(data);
                         };
                     } // if (typeof optional_callback === 'undefined')
                     // So now we have a callback.
                     options.method = "GET";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 },
                 /** Check permissions
 
@@ -994,9 +1024,9 @@ var RAVEN = (function () {
 
                     resource - resource name,
                     permissions - an object with each entry having a
-                        resource type as the key, and a list of permissions
-                        as the values, e.g.
-                        {'author': ['read', 'create', 'update', 'delete']}
+                    resource type as the key, and a list of permissions
+                    as the values, e.g.
+                    {'author': ['read', 'create', 'update', 'delete']}
                     options.success
                     options.error
                     options.force_reload
@@ -1011,7 +1041,7 @@ var RAVEN = (function () {
                     if (typeof options.force_reload === 'undefined') {
                         options.force_reload = false;
                     }
-                    query_string = RAVEN.URL.build_query_string(permissions);
+                    query_string = MAG.URL.build_query_string(permissions);
 
                     url = 'http://' + SITE_DOMAIN + '/auth/checkpermission/?' +
                         query_string;
@@ -1020,35 +1050,35 @@ var RAVEN = (function () {
                         // No optional callback
                         // Just cache the resource
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 (options.force_reload === false)
                         ) {
                             // Nothing to do
                             return;
                         }
                         options.success = function (data) {
-                            RAVEN._STORAGE.store_data(api_url, data);
+                            MAG._STORAGE.store_data(api_url, data);
                         };
                     } else {
                         // We have an optional callback so use it.
                         if (
-                            RAVEN._STORAGE.is_stored_item(api_url) &&
+                            MAG._STORAGE.is_stored_item(api_url) &&
                                 options.force_reload === false
                         ) {
                             options.success(
-                                RAVEN._STORAGE.get_data_from_storage(api_url)
+                                MAG._STORAGE.get_data_from_storage(api_url)
                             );
                             return;
                         }
                         callback = options.success;
                         options.success = function (data) {
-                            RAVEN._STORAGE.store_data(api_url, data);
+                            MAG._STORAGE.store_data(api_url, data);
                             callback(data);
                         };
                     } // if (typeof optional_callback === 'undefined')
                     // So now we have a callback.
                     options.method = "GET";
-                    RAVEN._REQUEST.request(url, options);
+                    MAG._REQUEST.request(url, options);
                 }
                 // End of submodule AUTH
             };
@@ -1062,7 +1092,7 @@ var RAVEN = (function () {
                 },
 
                 get_static_url: function () {
-                    return RAVEN.URL.get_home_url() + 'static/';
+                    return MAG.URL.get_home_url() + 'static/';
                 },
 
                 /** Returns the current query arguments as an object of key,
@@ -1074,18 +1104,18 @@ var RAVEN = (function () {
                     ) {
                         return {};
                     }
-                    return RAVEN.URL.parse_query_string(window.location.search);
+                    return MAG.URL.parse_query_string(window.location.search);
                 },
 
                 /** Add an argument to a an existing URL */
                 add_argument_to_url: function (url, key, value) {
                     var template;
-                    if (RAVEN.URL.contains_question_mark(url)) {
+                    if (MAG.URL.contains_question_mark(url)) {
                         template = "{url};{key}={value}";
                     } else {
                         template = "{url}?{key}={value}";
                     }
-                    return RAVEN.TEMPLATE.substitute(template,
+                    return MAG.TEMPLATE.substitute(template,
                                                      {url: url,
                                                       key: key,
                                                       value: value});
@@ -1102,7 +1132,7 @@ var RAVEN = (function () {
                         if (data.hasOwnProperty(query_arg)) {
                             value = data[query_arg];
                             if (
-                                RAVEN.TYPES.is_string(value)
+                                MAG.TYPES.is_string(value)
                             ) {
                                 ret.push(
                                     encodeURIComponent(query_arg) +
@@ -1187,7 +1217,7 @@ var RAVEN = (function () {
                             0,
                             index - 1
                         ).match(
-                            /([A-Za-z0-9_\-\.\,\?\$\(\)\*\+~\/@\ ]+|(\B)(?=\]))/g
+                                /([A-Za-z0-9_\-\.\,\?\$\(\)\*\+~\/@\ ]+|(\B)(?=\]))/g
                         ) : [val];
                         obj = object;
                         if (!keys) {
@@ -1196,7 +1226,7 @@ var RAVEN = (function () {
                         if (decodeValues) {
                             value = decodeURIComponent(value);
                         }
-                        if (RAVEN.TYPES.is_string(value)) {
+                        if (MAG.TYPES.is_string(value)) {
                             if (value.indexOf('JSON:') === 0) {
                                 value = value.substr(5);
                                 value = JSON.parse(value);
@@ -1211,7 +1241,7 @@ var RAVEN = (function () {
 
                             if (i < keys.length - 1) {
                                 obj = obj[key] = current || {};
-                            } else if (RAVEN.TYPES.is_array(current)) {
+                            } else if (MAG.TYPES.is_array(current)) {
                                 current.push(value);
                             } else {
                                 if (typeof current === 'undefined') {
@@ -1246,8 +1276,8 @@ var RAVEN = (function () {
                 },
 
                 get_api_query_url: function () {
-                    return RAVEN._STORAGE.get_data_from_storage_or_function(
-                        'RAVEN._REST.get_api_url',
+                    return MAG._STORAGE.get_data_from_storage_or_function(
+                        'MAG._REST.get_api_url',
                         '',
                         ''
                     ) + 'query/?';
@@ -1255,8 +1285,8 @@ var RAVEN = (function () {
 
                 get_api_simple_resource_instance_url: function (resource, id) {
                     var api_url =
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            'RAVEN._REST.get_api_url',
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            'MAG._REST.get_api_url',
                             '',
                             ''
                         );
@@ -1266,12 +1296,12 @@ var RAVEN = (function () {
                 cache_api_data: function (data) {
                     var storagekey;
                     storagekey = "api:" +
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_simple_resource_instance_url",
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_simple_resource_instance_url",
                             data._model + '/' + data._id,
                             [data._model, data._id]
                         );
-                    RAVEN._STORAGE.store_data(storagekey, data);
+                    MAG._STORAGE.store_data(storagekey, data);
                 },
 
                 /** Cache multiple instances individually.
@@ -1281,7 +1311,7 @@ var RAVEN = (function () {
                     var length, i;
                     length = data.instances.length;
                     for (i = 0; i < length; i += 1) {
-                        RAVEN._REST.cache_api_data(data.instances[i]);
+                        MAG._REST.cache_api_data(data.instances[i]);
                     }
                 },
 
@@ -1289,21 +1319,21 @@ var RAVEN = (function () {
                 cache_api_list: function (data, resource, query) {
                     var storagekey;
                     storagekey = "api:" +
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_url"
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_url"
                         ) + resource + '/';
                     if (typeof query !== 'undefined') {
-                        storagekey += '?' + RAVEN.URL.build_query_string(query);
+                        storagekey += '?' + MAG.URL.build_query_string(query);
                     }
-                    RAVEN._STORAGE.store_data(storagekey, data);
+                    MAG._STORAGE.store_data(storagekey, data);
                 },
 
                 /** Delete cached data */
                 delete_api_data: function (data) {
                     var storagekey;
                     storagekey = "api:" +
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_simple_resource_instance_url",
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_simple_resource_instance_url",
                             data._model + '/' + data._id,
                             [data._model, data._id]
                         );
@@ -1315,8 +1345,8 @@ var RAVEN = (function () {
                 delete_multiple_cached_data: function (resource, ids) {
                     var storagekey, instance_key, length, i;
                     storagekey = "api:" +
-                        RAVEN._STORAGE.get_data_from_storage_or_function(
-                            "RAVEN._REST.get_api_url"
+                        MAG._STORAGE.get_data_from_storage_or_function(
+                            "MAG._REST.get_api_url"
                         ) + resource + '/';
                     length = ids.length;
                     for (i = 0; i < length; i += 1) {
@@ -1357,16 +1387,16 @@ var RAVEN = (function () {
                     }
                     // IE needs a special JSON bit in the URL
                     if (
-                        RAVEN._REQUEST.detect_ie()
+                        MAG._REQUEST.detect_ie()
                     ) {
-                        url = RAVEN.URL.add_argument_to_url(
+                        url = MAG.URL.add_argument_to_url(
                             url,
                             'format',
                             'json'
                         );
                     }
                     // Instantiate the xhr
-                    xhr = RAVEN._REQUEST._xhr();
+                    xhr = MAG._REQUEST._xhr();
                     /*
                       if (progressSupport){
                       xhr.onloadstart = this.loadstart.bind(this);
@@ -1420,7 +1450,7 @@ var RAVEN = (function () {
                         }
                     };
 
-                    default_headers = RAVEN._REQUEST._default_headers;
+                    default_headers = MAG._REQUEST._default_headers;
                     /* Set the values of the HTTP request headers. */
                     for (header in default_headers) {
                         if (default_headers.hasOwnProperty(header)) {
@@ -1455,7 +1485,7 @@ var RAVEN = (function () {
                 /** The XMLHTTP object or equivalent. */
                 /** was Browser.Request */
                 _xhr: function () {
-                    return RAVEN.FUNCTOOLS.attempt(function () {
+                    return MAG.FUNCTOOLS.attempt(function () {
                         return new XMLHttpRequest();
                     }, function () {
                         return new ActiveXObject('MSXML2.XMLHTTP');
@@ -1511,8 +1541,13 @@ var RAVEN = (function () {
                     s = s.replace(/[ ]{2,}/gi, " ");
                     s = s.replace(/\n /, "\n");
                     return s;
-                }
+                },
 
+                /** Replace all instances of `old_key` in `string` with `new_key` */
+                replace_all: function(string, old_key, new_key) {
+                    var regex = new RegExp(old_key, 'g');
+                    return string.replace(regex, new_key);
+                },
                 // End of submodule TEMPLATE
             };
         }()),
@@ -1532,7 +1567,7 @@ var RAVEN = (function () {
 
                 is_stored_item: function (key) {
                     // Check to see if the local storage has an item
-                    if (!RAVEN._STORAGE.supports_local_storage()) {
+                    if (!MAG._STORAGE.supports_local_storage()) {
                         return false;
                     }
                     if (localStorage[key]) {
@@ -1577,28 +1612,28 @@ var RAVEN = (function () {
                     fnarg
                 ) {
                     var storagekey, storage_object, data, result;
-                    storagekey = RAVEN.TEMPLATE.substitute(
+                    storagekey = MAG.TEMPLATE.substitute(
                         "{fnname}:{keyarg}",
                         {
                             'fnname': fnname,
                             'keyarg': keyarg
                         }
                     );
-                    if (RAVEN._STORAGE.is_stored_item(storagekey)) {
-                        return RAVEN._STORAGE.get_data_from_storage(storagekey);
+                    if (MAG._STORAGE.is_stored_item(storagekey)) {
+                        return MAG._STORAGE.get_data_from_storage(storagekey);
                     }
                     // Not in storage (yet)
                     // Multiple arguments or single argument
                     if (fnarg instanceof Array) {
-                        result = RAVEN.FUNCTOOLS.get_function_from_string(
+                        result = MAG.FUNCTOOLS.get_function_from_string(
                             fnname
                         ).apply(this, fnarg);
                     } else {
-                        result = RAVEN.FUNCTOOLS.get_function_from_string(
+                        result = MAG.FUNCTOOLS.get_function_from_string(
                             fnname
                         )(fnarg);
                     }
-                    RAVEN._STORAGE.store_data(storagekey, result);
+                    MAG._STORAGE.store_data(storagekey, result);
                     return result;
                 },
 
@@ -1621,37 +1656,37 @@ var RAVEN = (function () {
             return {
 
                 add_event: function (element, type, fn, nickname) {
-                    if (typeof RAVEN._EVENT_STORE[nickname] === "undefined") {
-                        RAVEN._EVENT_STORE[nickname] = [];
+                    if (typeof MAG._EVENT_STORE[nickname] === "undefined") {
+                        MAG._EVENT_STORE[nickname] = [];
                     }
 
-                    RAVEN._EVENT_STORE[nickname].push(
+                    MAG._EVENT_STORE[nickname].push(
                         {
                             'element': element,
                             'type': type,
                             'fn': fn
                         }
                     );
-                    RAVEN.EVENT.addEventListener(element, type, fn);
+                    MAG.EVENT.addEventListener(element, type, fn);
                 },
 
                 /** Remove an event by nickname,
                     Required: nickname - the given name of the event
                     Options:
-                        options.type - type of event e.g. click
-                        options.element - the element the event is attached to.
-                 */
+                    options.type - type of event e.g. click
+                    options.element - the element the event is attached to.
+                */
                 remove_event: function (nickname, options) {
                     var i, event;
                     if (typeof options === "undefined") {
                         options = {};
                     }
 
-                    if (typeof RAVEN._EVENT_STORE[nickname] === "undefined") {
+                    if (typeof MAG._EVENT_STORE[nickname] === "undefined") {
                         return;
                     }
-                    for (i = RAVEN._EVENT_STORE[nickname].length - 1; i >= 0; i = i - 1) {
-                        event = RAVEN._EVENT_STORE[nickname][i];
+                    for (i = MAG._EVENT_STORE[nickname].length - 1; i >= 0; i = i - 1) {
+                        event = MAG._EVENT_STORE[nickname][i];
                         if (options.type) {
                             if (event.type !== options.type) {
                                 continue;
@@ -1663,15 +1698,15 @@ var RAVEN = (function () {
                             }
                         }
 
-                        RAVEN.EVENT.removeEventListener(
+                        MAG.EVENT.removeEventListener(
                             event.element,
                             event.type,
                             event.fn
                         );
-                        RAVEN._EVENT_STORE[nickname].splice(i, 1);
+                        MAG._EVENT_STORE[nickname].splice(i, 1);
                     }
-                    if (RAVEN._EVENT_STORE[nickname].length === 0) {
-                        delete RAVEN._EVENT_STORE[nickname];
+                    if (MAG._EVENT_STORE[nickname].length === 0) {
+                        delete MAG._EVENT_STORE[nickname];
                     }
                 },
 
@@ -1731,17 +1766,17 @@ var RAVEN = (function () {
                 },
 
                 get_row: function (row_content) {
-                    return RAVEN.TEMPLATE.substitute(
-                        RAVEN.TABLE.TEMPLATES.table_row,
+                    return MAG.TEMPLATE.substitute(
+                        MAG.TABLE.TEMPLATES.table_row,
                         {'rowcontent': row_content}
                     );
                 },
 
                 get_item_as_string: function (name, object) {
-                    if (RAVEN.TYPES.is_string(object)) {
+                    if (MAG.TYPES.is_string(object)) {
                         return object;
                     }
-                    if (RAVEN.TYPES.is_object(object)) {
+                    if (MAG.TYPES.is_object(object)) {
                         if (name === '_id') {
                             if (object.$oid !== "undefined") {
                                 return object.$oid;
@@ -1753,8 +1788,8 @@ var RAVEN = (function () {
                 },
 
                 get_item: function (item_content) {
-                    return RAVEN.TEMPLATE.substitute(
-                        RAVEN.TABLE.TEMPLATES.table_item,
+                    return MAG.TEMPLATE.substitute(
+                        MAG.TABLE.TEMPLATES.table_item,
                         {'itemcontent': item_content}
                     );
                 },
@@ -1763,8 +1798,8 @@ var RAVEN = (function () {
                     if (typeof id === 'undefined') {
                         id = "sortable";
                     }
-                    return RAVEN.TEMPLATE.substitute(
-                        RAVEN.TABLE.TEMPLATES.table_outer,
+                    return MAG.TEMPLATE.substitute(
+                        MAG.TABLE.TEMPLATES.table_outer,
                         {
                             'tablecontent': table_content,
                             "id": id
@@ -1777,26 +1812,26 @@ var RAVEN = (function () {
                     header_data = "";
                     for (name in data[0]) {
                         if (typeof data[0][name] !== 'function') {
-                            header_data += RAVEN.TEMPLATE.substitute(
-                                RAVEN.TABLE.TEMPLATES.table_header,
+                            header_data += MAG.TEMPLATE.substitute(
+                                MAG.TABLE.TEMPLATES.table_header,
                                 {'headercontent': name}
                             );
                         } // End if (typeof data[i][name] !== 'function')
                     } // End: for (name in data[i])
-                    return RAVEN.TABLE.get_row(header_data);
+                    return MAG.TABLE.get_row(header_data);
                 },
 
                 show_table: function (data) {
                     var i, content, name, row_data;
-                    content = RAVEN.TABLE.get_table_header(data);
+                    content = MAG.TABLE.get_table_header(data);
                     // Go through each row in data
                     for (i = 0; i < data.length; i += 1) {
                         row_data = "";
                         // Go through each item in row
                         for (name in data[i]) {
                             if (typeof data[i][name] !== 'function') {
-                                row_data += RAVEN.TABLE.get_item(
-                                    RAVEN.TABLE.get_item_as_string(
+                                row_data += MAG.TABLE.get_item(
+                                    MAG.TABLE.get_item_as_string(
                                         name,
                                         data[i][name]
                                     )
@@ -1804,10 +1839,10 @@ var RAVEN = (function () {
                             } // End if (typeof data[i][name] !== 'function')
                         } // End: for (name in data[i])
                         // Put the row together
-                        content += RAVEN.TABLE.get_row(row_data);
+                        content += MAG.TABLE.get_row(row_data);
                     } // End: for (i = 0; i < data.length; i += 1)
 
-                    return RAVEN.TABLE.get_table(content);
+                    return MAG.TABLE.get_table(content);
                 }, // End: show_table
 
                 /** Make a table cell editable */
@@ -1827,11 +1862,11 @@ var RAVEN = (function () {
                     }
                 },
                 make_table_edit_event: function (table_id) {
-                    RAVEN.EVENT.addEventListener(
+                    MAG.EVENT.addEventListener(
                         document.getElementById(table_id),
                         'click',
                         function (event) {
-                            RAVEN.TABLE.handle_table_edit_click(
+                            MAG.TABLE.handle_table_edit_click(
                                 event,
                                 table_id
                             );
@@ -1848,10 +1883,10 @@ var RAVEN = (function () {
                 handle_table_edit_click: function (event, table_id) {
                     var table_element, cell_element, header;
                     table_element = document.getElementById(table_id);
-                    cell_element = RAVEN.EVENT.get_event_target(event);
+                    cell_element = MAG.EVENT.get_event_target(event);
 
                     // Perhaps should be id or something instead
-                    header = RAVEN.TABLE.find_header_for_cell(
+                    header = MAG.TABLE.find_header_for_cell(
                         table_element,
                         cell_element
                     ).textContent;
@@ -1861,7 +1896,7 @@ var RAVEN = (function () {
                         // TODO
                     } else if (cell_element.tagName.toUpperCase() === 'TD') {
                         // It is a normal cell, make it editable
-                        RAVEN.TABLE.make_editable(cell_element);
+                        MAG.TABLE.make_editable(cell_element);
                     }
                 }
 
@@ -1872,44 +1907,44 @@ var RAVEN = (function () {
         ADMIN: (function () {
             return {
                 init: function () {
-                    RAVEN.ADMIN.open_page();
+                    MAG.ADMIN.open_page();
                 },
-                PAGES: {'users': 'RAVEN.ADMIN.show_user_page'},
+                PAGES: {'users': 'MAG.ADMIN.show_user_page'},
 
                 show_admin_home: function () {
                     document.getElementById('content').innerHTML = "Admin Home";
                 },
 
                 show_user_page: function () {
-                    RAVEN.ADMIN.get_users();
+                    MAG.ADMIN.get_users();
                 },
 
                 show_user_table: function (users) {
                     document.getElementById('content').innerHTML =
-                        RAVEN.TABLE.show_table(users.results);
+                        MAG.TABLE.show_table(users.results);
                 },
 
                 get_users: function () {
-                    RAVEN.REST.apply_to_list_of_resources(
+                    MAG.REST.apply_to_list_of_resources(
                         '_user',
-                        {success: RAVEN.ADMIN.show_user_table}
+                        {success: MAG.ADMIN.show_user_table}
                     );
                 },
 
                 open_page: function () {
                     var page, fn_name, query;
-                    query = RAVEN.URL.get_current_query();
+                    query = MAG.URL.get_current_query();
                     if (!query) {
-                        return RAVEN.ADMIN.show_admin_home;
+                        return MAG.ADMIN.show_admin_home;
                     }
                     page = query['*page'];
                     if (page) {
-                        fn_name = RAVEN.ADMIN.PAGES[page];
+                        fn_name = MAG.ADMIN.PAGES[page];
                         if (typeof fn_name !== "undefined") {
-                            RAVEN.FUNCTOOLS.get_function_from_string(fn_name)();
+                            MAG.FUNCTOOLS.get_function_from_string(fn_name)();
                         }
                     }
-                    return RAVEN.ADMIN.show_admin_home;
+                    return MAG.ADMIN.show_admin_home;
                 }
                 // End of submodule ADMIN
             };
@@ -1928,7 +1963,7 @@ var RAVEN = (function () {
                     invalid_list = [];
                     elems = document.getElementById(form_id).elements;
                     for (i = 0; i < elems.length; i += 1) {
-                        result = RAVEN.FORMS.validate_element(elems[i]);
+                        result = MAG.FORMS.validate_element(elems[i]);
                         if (result.invalid === true) {
                             invalid_list.push(elems[i].id);
                         }
@@ -1951,9 +1986,9 @@ var RAVEN = (function () {
                     //type=text and textarea and only
                     //if we don't require strings
                     if ((elem.tagName === 'INPUT' && elem.type === 'text') ||
-                            elem.tagName === 'TEXTAREA') {
-                        if (RAVEN.ELEMENT.has_className(elem, 'integer') &&
-                                elem.value.length > 0) {
+                        elem.tagName === 'TEXTAREA') {
+                        if (MAG.ELEMENT.has_className(elem, 'integer') &&
+                            elem.value.length > 0) {
                             if (isNaN(parseInt(elem.value, 10))) {
                                 invalid = true;
                             }
@@ -1961,7 +1996,7 @@ var RAVEN = (function () {
                     }
                     //check required fields are not empty or none
                     if (
-                        RAVEN.ELEMENT.has_className(elem, 'required') &&
+                        MAG.ELEMENT.has_className(elem, 'required') &&
                             (elem.value === '' || elem.value === 'none')
                     ) {
                         missing = true;
@@ -1971,19 +2006,19 @@ var RAVEN = (function () {
 
 
                 /** Populate a select
-                 * data = list of json objects containing all data or a list of strings which will be ised as value and display
-                 * select = HTML element to be populated 
+                 * data = list of json objects containing all data or a list of strings which will be used as value and display
+                 * select = HTML element to be populated
                  * value_key = a single key as a string to use as value attribute for option
-                 * text_keys = a string, list of strings or object with numbered keys, to use as text of option, 
+                 * text_keys = a string, list of strings or object with numbered keys, to use as text of option,
                  *              falls through list until it finds one in the data or comma separates numbered fields is object
-                 * selected_option_value = optional argument to say which of the options should be selected */               
+                 * selected_option_value = optional argument to say which of the options should be selected */
                 populate_select: function (data, select, value_key, text_keys, selected_option_value) {
-                    var options, i, j, template, mapping, text_key, inner_template, inner_template_list, option_text, inner_mapping;                  
+                    var options, i, j, template, mapping, text_key, inner_template, inner_template_list, option_text, inner_mapping;
                     options = '<option value="none">select</option>';
                     template = '<option value="{val}"{select}>{text}</option>';
                     for (i = 0; i < data.length; i += 1) {
                         //sort out fall through to a key which does exist if text_keys is an array
-                        if (RAVEN.TYPES.is_array(text_keys)) {
+                        if (MAG.TYPES.is_array(text_keys)) {
                             for (j = 0; j < text_keys.length; j += 1) {
                                 if (data[i].hasOwnProperty(text_keys[j])) {
                                     text_key = text_keys[j];
@@ -1994,49 +2029,49 @@ var RAVEN = (function () {
                             text_key = text_keys;
                         }
                         //if text_key is an object map multiple keys to display in option
-                        if (RAVEN.TYPES.is_object(text_key)) {
+                        if (MAG.TYPES.is_object(text_key)) {
                             inner_template_list = [];
                             j = 1;
                             inner_mapping = {};
-                            while (text_key.hasOwnProperty(j)) {                                
-                                inner_template_list.push('{' + text_key[j] + '}');  
-                                inner_template = inner_template_list.join(', ');     
+                            while (text_key.hasOwnProperty(j)) {
+                                inner_template_list.push('{' + text_key[j] + '}');
+                                inner_template = inner_template_list.join(', ');
                                 inner_mapping[text_key[j]] = 'test';
                                 inner_mapping[text_key[j]] = data[i][text_key[j]] || 'none';
                                 j += 1;
                             }
-                            option_text = RAVEN.TEMPLATE.substitute(inner_template, inner_mapping); 
+                            option_text = MAG.TEMPLATE.substitute(inner_template, inner_mapping);
                         }
                         //final mapping object for option
                         mapping = {val: data[i][value_key] || data[i], text: option_text || data[i][text_key] || data[i] || ' ', select: ""};
-                        if (typeof selected_option_value !== 'undefined' && (data[i][value_key] === selected_option_value || data[i] === selected_option_value)) {
+                        if (typeof selected_option_value !== 'undefined' && (data[i][value_key] === selected_option_value || data[i] === selected_option_value || data[i] === String(selected_option_value))) {
                             mapping.select = ' selected="selected"';
                         }
-                        options += RAVEN.TEMPLATE.substitute(template, mapping);
+                        options += MAG.TEMPLATE.substitute(template, mapping);
                     }
                     select.innerHTML = options;
                 },
- 
-                
+
+
                 get_value: function (elem) {
                     var value;
                     value = null;
                     if ((elem.tagName === 'INPUT' && elem.type !== 'checkbox') || elem.tagName === 'TEXTAREA') {
                         if (elem.value !== '') {
                             value = elem.value;
-                            if (RAVEN.ELEMENT.has_className(elem, 'stringlist')) {
+                            if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
                                 value = value.split('|');
                             } else {
-                                if (RAVEN.ELEMENT.has_className(elem, 'integer')) {
+                                if (MAG.ELEMENT.has_className(elem, 'integer')) {
                                     value = parseInt(value, 10);
-                                } else if (RAVEN.ELEMENT.has_className(elem, 'datetime')) {
+                                } else if (MAG.ELEMENT.has_className(elem, 'datetime')) {
                                     value = {'$date': parseInt(value)};
                                 }
                             }
                         }
                     } else {
                         if (elem.type === 'checkbox') {
-                            if (RAVEN.ELEMENT.has_className(elem, 'boolean')) {
+                            if (MAG.ELEMENT.has_className(elem, 'boolean')) {
                                 if (elem.checked) {
                                     value = true;
                                 } else {
@@ -2051,10 +2086,10 @@ var RAVEN = (function () {
                             if (elem.tagName === 'SELECT') {
                                 value = elem.value;
                                 if (value !== 'none') {
-                                    if (RAVEN.ELEMENT.has_className(elem, 'integer')) {
+                                    if (MAG.ELEMENT.has_className(elem, 'integer')) {
                                         value = parseInt(value, 10);
                                     } else {
-                                        if (RAVEN.ELEMENT.has_className(elem, 'boolean')) {
+                                        if (MAG.ELEMENT.has_className(elem, 'boolean')) {
                                             if (value === 'true') {
                                                 value = true;
                                             } else {
@@ -2088,13 +2123,13 @@ var RAVEN = (function () {
                         elem = elems[i];
                         value = null;
                         if (!elem.getAttribute('disabled')) {
-                            if (elem.name ||  RAVEN.ELEMENT.has_className(elem, 'data_group')) {
-                                if (RAVEN.ELEMENT.has_className(elem, 'data_group')) {
+                            if (elem.name ||  MAG.ELEMENT.has_className(elem, 'data_group')) {
+                                if (MAG.ELEMENT.has_className(elem, 'data_group')) {
                                     /** construct a list of all elements
                                         descending from elem */
                                     subelems = [];
                                     j = i + 1;
-                                    while (RAVEN.ELEMENT.is_ancestor(elems[j], elem)) {
+                                    while (MAG.ELEMENT.is_ancestor(elems[j], elem)) {
                                         subelems.push(elems[j]);
                                         j += 1;
                                     }
@@ -2103,16 +2138,16 @@ var RAVEN = (function () {
                                     } else {
                                         key = elem.id.replace(prefix, '');
                                     }
-                                    subjson = RAVEN.FORMS.serialize_form(form_id, subelems, elem.id + '_');
+                                    subjson = MAG.FORMS.serialize_form(form_id, subelems, elem.id + '_');
                                     console.log(subjson)
-                                    if (!RAVEN.TYPES.is_empty_object(subjson)) {
-                                        if (RAVEN.ELEMENT.has_className(elem, 'objectlist')) {
+                                    if (!MAG.TYPES.is_empty_object(subjson)) {
+                                        if (MAG.ELEMENT.has_className(elem, 'objectlist')) {
                                             try {
                                                 json[key.substring(0, key.lastIndexOf('_'))].push(subjson);
                                             } catch (err) {
                                                 json[key.substring(0, key.lastIndexOf('_'))] = [subjson];
                                             }
-                                        } else if (RAVEN.ELEMENT.has_className(elem, 'stringlist')) {
+                                        } else if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
                                             json[key] = [];
                                             for (k in subjson) {
                                                 if (subjson.hasOwnProperty(k)) {
@@ -2125,7 +2160,7 @@ var RAVEN = (function () {
                                     }
                                     i = j - 1;
                                 } else {
-                                    value = RAVEN.FORMS.get_value(elem);
+                                    value = MAG.FORMS.get_value(elem);
                                     if (value !== null) {
                                         if (prefix === undefined) {
                                             json[elem.name] = value;
@@ -2148,7 +2183,7 @@ var RAVEN = (function () {
                          field.type !== 'checkbox') ||
                             field.tagName === 'TEXTAREA'
                     ) {
-                        if (RAVEN.TYPES.is_array(data)) {
+                        if (MAG.TYPES.is_array(data)) {
                             field.value = data.join('|');
                         } else {
                             field.value = data;
@@ -2156,7 +2191,7 @@ var RAVEN = (function () {
                     } else if (field.type === 'checkbox') {
                         field.checked = data;
                     } else if (field.tagName === 'SELECT') {
-                        if (RAVEN.TYPES.is_number(data)) {
+                        if (MAG.TYPES.is_number(data)) {
                             data = data.toString();
                         }
                         if (field.options.length > 0) {
@@ -2189,15 +2224,15 @@ var RAVEN = (function () {
                     }
                     for (key in data) {
                         if (data.hasOwnProperty(key)) {
-                            if (RAVEN.TYPES.is_object(data[key])) {
-                                RAVEN.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
-                            } else if (RAVEN.TYPES.is_array(data[key]) &&
-                                       RAVEN.TYPES.is_object(data[key][0])) {
-                                RAVEN.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            if (MAG.TYPES.is_object(data[key])) {
+                                MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            } else if (MAG.TYPES.is_array(data[key]) &&
+                                       MAG.TYPES.is_object(data[key][0])) {
+                                MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
                             } else {
                                 field = document.getElementById(prefix + key);
                                 if (field) {
-                                    RAVEN.FORMS.populate_field(field, data[key]);
+                                    MAG.FORMS.populate_field(field, data[key]);
                                 }
                             }
                         }
@@ -2235,13 +2270,13 @@ var RAVEN = (function () {
                     }
                     for (key in data) {
                         if (data.hasOwnProperty(key)) {
-                            if (RAVEN.TYPES.is_object(data[key])) {
+                            if (MAG.TYPES.is_object(data[key])) {
                                 prefix_list.push(key);
-                                RAVEN.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
-                            //objectlist
-                            } else if (RAVEN.TYPES.is_array(data[key]) && RAVEN.TYPES.is_object(data[key][0])) {
+                                MAG.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
+                                //objectlist
+                            } else if (MAG.TYPES.is_array(data[key]) && MAG.TYPES.is_object(data[key][0])) {
                                 prefix_list.push(key);
-                                RAVEN.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
+                                MAG.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
                             } else {
                                 if (prefix_list.length > 0) {
                                     field = document.getElementById(prefix_list.join('_') +  '_' +  key);
@@ -2249,15 +2284,15 @@ var RAVEN = (function () {
                                     field = document.getElementById(key);
                                 }
                                 if (field) {
-                                    RAVEN.FORMS.populate_field(field, data[key]);
+                                    MAG.FORMS.populate_field(field, data[key]);
                                 } else {
                                     i = 1;
                                     while (field === null && i <= prefix_list.length) {
                                         fnstring = js_name_space + '.add_' + prefix_list.slice(0, i * -1).join('_');
                                         try {
-                                            RAVEN.FUNCTOOLS.get_function_from_string(fnstring)();
+                                            MAG.FUNCTOOLS.get_function_from_string(fnstring)();
                                             field = document.getElementById(prefix_list.join('_') + '_' + key);
-                                            RAVEN.FORMS.populate_field(field,data[key]);
+                                            MAG.FORMS.populate_field(field,data[key]);
                                         } catch (err) {
                                             //ignore
                                         }
@@ -2271,7 +2306,88 @@ var RAVEN = (function () {
                         prefix_list.pop();
                     }
                     return;
+                },
+
+                submit: function (form_id, next) {
+                    var validation;
+                    validation = MAG.FORMS.validate_form(form_id);
+                    if (validation.result === true) {
+                        MAG.FORMS.save(form_id, next);
+                    } else {
+                        MAG.DISPLAY.show_validation(validation);
+                        MAG.FORMS.show_error_box('<br/>The data is not valid and cannot be saved. Please fix the errors and resave.'
+                                                   + '<br/><br/>Red label text indicates that required data has not been supplied.'
+                                                   + '<br/>A red background indicates that the data in that box is not in a format that is valid.');
+                    }
+                    return;
+                },
+
+                save: function (form_id, next) {
+                    var json;
+                    json = MAG.FORMS.serialize_form(form_id);
+                    if (json.hasOwnProperty('_id')) {
+                        MAG.FORMS.save_resource(json._model, json, next, 'update');
+                    } else {
+                        MAG.FORMS.save_resource(json._model, json, next, 'create');
+                    }
+                    return;
+                },
+
+                save_resource: function (model, json, next, type) {
+                    var options, item;
+                    options = {'success': function(response) {
+                        if (next === undefined) {
+                            window.location.search = response._model + '=' + response._id;
+                        } else {
+                            window.location = next;
+                        }
+                        for (item in localStorage) {
+                            if (item.indexOf('/api/' + form_id.replace('_form', '')) !== -1) {
+                                delete localStorage[item];
+                            }
+                        }
+                    }, 'error': function(response) {
+                        MAG.FORMS.handle_error('create', response, json._model);
+                    }};
+                    if (type === 'create') {
+                        MAG.REST.create_resource(json._model, json, options);
+                    } else if (type === 'update') {
+                        MAG.REST.update_resource(json._model, json, options);
+                    }
+                },
+
+                show_error_box: function (report) {
+                    var error_div;
+                    if (document.getElementById('error') !== null) {
+                        document.getElementsByTagName('body')[0].removeChild(document.getElementById('error'));
+                    }
+                    error_div = document.createElement('div');
+                    error_div.setAttribute('id', 'error');
+                    error_div.setAttribute('class', 'error_message');
+                    error_div.innerHTML = '<span id="error_title"><b>Error</b></span><div id="error_close">close</div><br/><br/>' + report;
+                    document.getElementsByTagName('body')[0].appendChild(error_div);
+                    MAG.EVENT.addEventListener(document.getElementById('error_close'), 'click', function(event){
+                        document.getElementsByTagName('body')[0].removeChild(document.getElementById('error'));
+                    });
+                },
+
+
+                handle_error: function (action, error_report, model) {
+                    var report;
+                    report = 'An error has occurred.<br/>';
+                    if (error_report.status === 401) {
+                        report += '<br/>You are not authorised to ' + action + ' an entry in the ' + model + ' table.';
+                    } else if (error_report.status === 409) {
+                        report += '<br/>It is not possible to ' + action + ' this ' + model + ' because an entry already exists with the same id.';
+                    } else if (error_report.status === 404) {
+                        report += '<br/>It is not possible to ' + action + ' this ' + model + ' because there is no ' + model + ' with this id.';
+                        report += '<br/><br/>This form can be used to add a new ' + model + '.';
+                    } else {
+                        report += '<br/>The server has encountered an error. Please try again. <br/>If the problem persists please contact the server administrator.';
+                    }
+                    MAG.FORMS.show_error_box(report);
                 }
+
 
 
                 // End of submodule FORMS
@@ -2284,14 +2400,14 @@ var RAVEN = (function () {
                 hello: function () {
                     console.log('display');
                 },
-        /**************************************************
-         * Single Instance Stuff
-         */        
-                
-                /* Show a single instance in a table 
+                /**************************************************
+                 * Single Instance Stuff
+                 */
+
+                /* Show a single instance in a table
                  * options are
                  *    key_order (supplied one will overwrite any others)
-                 *    show_blanks    
+                 *    show_blanks
                  *    */
                 show_instance_table: function (json, container_id, options) {
                     var container, html, show_blanks;
@@ -2299,55 +2415,55 @@ var RAVEN = (function () {
                     html = [];
                     show_blanks = options.blanks || false;
                     if (options !== undefined && options.key_order !== undefined) {
-                        html = RAVEN.DISPLAY.create_instance_table(json, options.key_order, show_blanks);   
-                        container.innerHTML = '<table class="data_instance">' + html.join('') + '</table>';               
+                        html = MAG.DISPLAY.create_instance_table(json, options.key_order, show_blanks);
+                        container.innerHTML = '<table class="data_instance">' + html.join('') + '</table>';
                     } else if (json.hasOwnProperty('_view') && json._view.hasOwnProperty('instance')) {
-                        html = RAVEN.DISPLAY.create_instance_table(json, json._view.instance, show_blanks);
+                        html = MAG.DISPLAY.create_instance_table(json, json._view.instance, show_blanks);
                         container.innerHTML = '<table class="data_instance">' + html.join('') + '</table>';
                     } else {
-                        RAVEN.REST.apply_to_resource('_model', json._model, {'success' : function (response) {
+                        MAG.REST.apply_to_resource('_model', json._model, {'success' : function (response) {
                             if (response.hasOwnProperty('_view') && response._view.hasOwnProperty('instance')) {
-                                html = RAVEN.DISPLAY.create_instance_table(json, response._view.instance, show_blanks);
+                                html = MAG.DISPLAY.create_instance_table(json, response._view.instance, show_blanks);
                                 container.innerHTML = '<table class="data_instance">' + html.join('') + '</table>';
-                            }                 
+                            }
                         }});
                     }
                 },
-                
+
                 create_instance_table: function(json, key_order, show_blanks, level) {
                     var html, i, j, label, key;
                     if (level === undefined) {
                         level = 0;
                     }
                     html = [];
-                    for (i = 0; i < key_order.length; i += 1) { 
-                        if (RAVEN.TYPES.is_string(key_order[i])) {
+                    for (i = 0; i < key_order.length; i += 1) {
+                        if (MAG.TYPES.is_string(key_order[i])) {
                             key = key_order[i];
-                            label = RAVEN.DISPLAY.capitalise_titles(key.replace(/_/g, ' '));
-                        } else if (RAVEN.TYPES.is_object(key_order[i])) {
+                            label = MAG.DISPLAY.capitalise_titles(key.replace(/_/g, ' '));
+                        } else if (MAG.TYPES.is_object(key_order[i])) {
                             key = key_order[i].id;
-                            label = key_order[i].label || RAVEN.DISPLAY.capitalise_titles(key.replace(/_/g, ' '));                    
+                            label = key_order[i].label || MAG.DISPLAY.capitalise_titles(key.replace(/_/g, ' '));
                         }
-                        if (json.hasOwnProperty(key)) {  
+                        if (json.hasOwnProperty(key)) {
                             html.push('<tr>');
-                            if (RAVEN.TYPES.is_string(json[key]) || RAVEN.TYPES.is_number(json[key])) {                        
+                            if (MAG.TYPES.is_string(json[key]) || MAG.TYPES.is_number(json[key])) {
                                 html.push('<td class="label level' + level + '">' + label + '</td>');
-                                html.push('<td class="data level' + level + '">' + json[key] + '</td>');  
-                            } else if (RAVEN.TYPES.is_boolean(json[key])) {
+                                html.push('<td class="data level' + level + '">' + json[key] + '</td>');
+                            } else if (MAG.TYPES.is_boolean(json[key])) {
                                 html.push('<td class="label level' + level + '">' + label + '</td>');
                                 if (json[key] === true) {
                                     html.push('<td class="data level' + level + '">Y</td>');
                                 } else {
                                     html.push('<td class="data level' + level + '">N</td>');
-                                }                       
-                            } else if (RAVEN.TYPES.is_array(json[key])) {
-                                if (RAVEN.TYPES.is_object(json[key][0])) {
+                                }
+                            } else if (MAG.TYPES.is_array(json[key])) {
+                                if (MAG.TYPES.is_object(json[key][0])) {
                                     html.push('<td class="label level' + level + '">' + label + '</td>');
                                     html.push('<td class="data level' + level + '">' );
                                     html.push('<table class="inner">');
-                                    html = html.concat(RAVEN.DISPLAY.create_instance_list_table(json[key], key_order[i].instance));
+                                    html = html.concat(MAG.DISPLAY.create_instance_list_table(json[key], key_order[i].instance));
                                     html.push('</table>');
-                                    html.push('</td>'); 
+                                    html.push('</td>');
                                 } else {
                                     html.push('<td class="label level' + level + '">' + label + '</td>');
                                     html.push('<td class="data level' + level + '">' );
@@ -2356,48 +2472,48 @@ var RAVEN = (function () {
                                         html.push('<br/>')
                                     }
                                     html.push('</td>');
-                                }                   
-                            } else if (RAVEN.TYPES.is_object(json[key])) {
-                                if (key_order[i].hasOwnProperty('instance')) { 
+                                }
+                            } else if (MAG.TYPES.is_object(json[key])) {
+                                if (key_order[i].hasOwnProperty('instance')) {
                                     html.push('<td class="label container level' + level + '">' + label + '</td>');
                                     html.push('<td class="data container level' + level + '"></td>');
-                                    html = html.concat(RAVEN.DISPLAY.create_instance_table(json[key], key_order[i].instance, show_blanks, level += 1));
+                                    html = html.concat(MAG.DISPLAY.create_instance_table(json[key], key_order[i].instance, show_blanks, level += 1));
                                     level = level-1;
                                 } else {
                                     html.push('<td class="label level' + level + '">' + label + '</td>');
                                     //process as dictionary
                                     html.push('<td class="data">');
-                                    html.push(RAVEN.DISPLAY.format_dictionary(json[key]));
+                                    html.push(MAG.DISPLAY.format_dictionary(json[key]));
                                     html.push('</td>');
                                 }
                             } else {
                                 html.push('<td class="label level' + level + '">' + label + '</td>');
-                                html.push('<td class="data level' + level + '">' + json[key] + '</td>');  
-                            }                
+                                html.push('<td class="data level' + level + '">' + json[key] + '</td>');
+                            }
                             html.push('</tr>');
-                        } else if (show_blanks === true) {                    
+                        } else if (show_blanks === true) {
                             html.push('<tr>');
                             html.push('<td class="label level' + level + '">' + label + '</span>');
                             html.push('<td class="data level' + level + '"></span>');
                             html.push('</tr>');
                         }
-                    }   
+                    }
                     return html;
                 },
-                    
-        /**************************************************
-         * List Display Stuff
-         */                
-                 
-                /* Show a list of instances in a table 
+
+                /**************************************************
+                 * List Display Stuff
+                 */
+
+                /* Show a list of instances in a table
                  * options are
                  * key_order: list of keys (supplied one will overwrite the one in the model)
                  * auto_filter: boolean to say whether or not to attempt to provide automatic sorting on fields
-                 * 
+                 *
                  */
                 //TODO: add a default sort to the info in citation_models and use it here
                 show_instance_list_table: function (model, container_id, options) {
-                    var container, html, key, key_list, auto_sort, param_dict, page_num, page_size, search, criteria, sort;
+                    var container, html, key, key_list, auto_sort, param_dict, page_num, page_size, search, criteria, sort, filter_key;
                     container = document.getElementById(container_id) || document.getElementsByTagName('body')[0];
                     html = [];
                     //supplied options
@@ -2410,42 +2526,50 @@ var RAVEN = (function () {
                         auto_sort = false;
                     }
                     if (options.hasOwnProperty('page_size')) {
-                        page_size = options.page_size;
+                        if (options.page_size === 'all') {
+                            page_size = null;
+                        } else {
+                            page_size = options.page_size;
+                        }
                     } else {
                         page_size = null;
                     }
                     //url data
-                    param_dict = RAVEN.URL.get_current_query();
+                    param_dict = MAG.URL.get_current_query();
                     if (param_dict.hasOwnProperty('page')){
                         page_num = param_dict.page;
                     } else {
                         page_num = 1;
                     }
-                    delete param_dict['page'];            
+                    delete param_dict['page'];
                     if (param_dict.hasOwnProperty('sort')) {
                         sort = param_dict.sort;
                     } else {
                         sort = null;
                     }
-                    delete param_dict['sort'];       
-                    RAVEN.REST.apply_to_resource('_model', model, {'success' : function (model_json) {
-                        if (model_json.hasOwnProperty('_view') 
-                                && model_json._view.hasOwnProperty('list') 
-                                && model_json._view.list.hasOwnProperty('read')) {
+                    delete param_dict['sort'];
+                    if (param_dict.hasOwnProperty('size')) {
+                        page_size = param_dict.size;
+                    } //already set to null above (or to supplied value)
+                    delete param_dict['size'];
+                    MAG.REST.apply_to_resource('_model', model, {'success' : function (model_json) {
+                        if (model_json.hasOwnProperty('_view')
+                            && model_json._view.hasOwnProperty('list')
+                            && model_json._view.list.hasOwnProperty('read')) {
                             key_list = model_json._view.list.read;
-                            RAVEN.AUTH.check_permission(model, 'update', {'success': function (update_permission){ 
+                            MAG.AUTH.check_permission(model, 'update', {'success': function (update_permission){
                                 if (update_permission === true) {
-                                    if (model_json.hasOwnProperty('_view') 
-                                            && model_json._view.hasOwnProperty('list') 
-                                            && model_json._view.list.hasOwnProperty('update')){
+                                    if (model_json.hasOwnProperty('_view')
+                                        && model_json._view.hasOwnProperty('list')
+                                        && model_json._view.list.hasOwnProperty('update')){
                                         key_list = model_json._view.list.update;
                                     }
                                 }
                                 //TODO:need to sort this out with getting other info required from model once the rest works!!!
                                 if (options.hasOwnProperty('key_order')) {
                                     console.log('key order supplied - needs fixing')
-                                    html = RAVEN.DISPLAY.create_instance_list_table(json, options.key_order);                
-                                    container.innerHTML = '<table class="data_list">' + html.join('') + '</table>';               
+                                    html = MAG.DISPLAY.create_instance_list_table(json, options.key_order);
+                                    container.innerHTML = '<table class="data_list">' + html.join('') + '</table>';
                                 } else {
                                     criteria = {'_count':'true'};
                                     if (page_size !== null) {
@@ -2454,7 +2578,7 @@ var RAVEN = (function () {
                                     }
                                     for (key in param_dict) {
                                         if (param_dict.hasOwnProperty(key)) {
-                                            criteria[key] = param_dict[key]; 
+                                            criteria[key] = param_dict[key];
                                         }
                                     }
                                     if (sort !== null) {
@@ -2466,38 +2590,65 @@ var RAVEN = (function () {
                                             criteria['_sort'] = [['_id', 1]];
                                         }
                                     }
-                                    RAVEN.REST.apply_to_list_of_resources(model, {'criteria' : criteria, 'force_reload': true, 'success' : function (json) {
-                                        console.log(json.results)
+                                    MAG.REST.apply_to_list_of_resources(model, {'criteria' : criteria, 'force_reload': true, 'success' : function (json) {
                                         if (json.results.length > 0) {
-                                            html = RAVEN.DISPLAY.create_instance_list_table(json.results, key_list, auto_sort, criteria._sort[0] || undefined);
+                                            html = MAG.DISPLAY.create_instance_list_table(json.results, key_list, auto_sort, criteria._sort[0] || undefined);
                                             container.innerHTML = '<table class="data_list">' + html + '</table>';
                                             if (auto_sort === true) {
-                                                RAVEN.DISPLAY.add_sort_handlers(key_list);
+                                                MAG.DISPLAY.add_sort_handlers(key_list);
                                             }
-                                            document.getElementById('page_title').innerHTML = RAVEN.DISPLAY.capitalise_titles(model) + ' List';
+                                            if (document.getElementById('page_title') !== null) {
+                                                document.getElementById('page_title').innerHTML = MAG.DISPLAY.capitalise_titles(model) + ' List';
+                                            }
                                             if (document.getElementById('page_nav') !== null) {
-                                                RAVEN.DISPLAY.get_navigation_widget(document.getElementById('page_nav'), json.count, page_num, page_size, {'buttons': true, 'angle_brackets': true});
+                                                if (document.getElementById('page_size') !== null) {
+                                                    document.getElementById('page_size').innerHTML = '<select id="page_size_select"></select> per page';
+                                                    MAG.FORMS.populate_select(['20', '50', '100', 'all'], document.getElementById('page_size_select'), undefined, undefined, page_size);
+                                                    MAG.EVENT.addEventListener(document.getElementById('page_size_select'), 'change', function(event){
+                                                        window.location = '?' + MAG.DISPLAY.create_new_query({'size': (parseInt(event.target.value))});
+                                                    });
+                                                }
+                                                MAG.DISPLAY.get_navigation_widget(document.getElementById('page_nav'), json.count, page_num, page_size, {'buttons': true, 'angle_brackets': true});
                                             }
                                             if (document.getElementById('search_widget') !== null) {
-                                                RAVEN.DISPLAY.create_search_widget(model, model_json); 
+                                                for (key in param_dict) {
+                                                    if (key !== 'page' && param_dict.hasOwnProperty(key)) {
+                                                        filter_key = key;
+                                                    }
+                                                }
+                                                if (typeof filter_key !== 'undefined') {
+                                                    MAG.DISPLAY.create_search_widget(model, model_json, filter_key);
+                                                } else {
+                                                    MAG.DISPLAY.create_search_widget(model, model_json);
+                                                }
                                             }
                                         } else {
                                             document.getElementById('content').innerHTML = '<br/><br/>There are no entries in the database to view.';
                                         }
-                                    }});                                 
+                                    }});
                                 }
                             }});
                         } else {
                             alert('no order list for ' + model);
-                        }                            
-                    }});     
+                        }
+                    }});
                 },
-                
-                create_search_widget: function (model, model_json) {
-                    var search_field, search_text, search_query;
-                    document.getElementById('search_widget').innerHTML = '<select id="search_field"></select><input type="text" id="search_text"/><input id="search" type="button" value="Go"/>';
-                    RAVEN.DISPLAY.get_search_widget(document.getElementById('search_widget'), model);
-                    RAVEN.EVENT.addEventListener(document.getElementById('search'), 'click', function(){
+
+                create_search_widget: function (model, model_json, filter_key) {
+                    var search_field, search_text, search_query, remove_filter;
+                    if (typeof filter_key !== 'undefined') {
+                        remove_filter = '<input id="remove" type="button" value="remove ' + MAG.DISPLAY.capitalise_titles(filter_key.replace(/_/g, ' ')) +  ' filter"/>';
+                    } else {
+                        remove_filter = '';
+                    }
+                    document.getElementById('search_widget').innerHTML = '<select id="search_field"></select><input type="text" id="search_text"/><input id="search" type="button" value="Go"/>' + remove_filter;
+                    MAG.DISPLAY.get_search_widget(document.getElementById('search_widget'), model);
+                    if (document.getElementById('remove') !== null) {
+                        MAG.EVENT.addEventListener(document.getElementById('remove'), 'click', function(){
+                            window.location = window.location.href.split('?')[0];
+                        });
+                    }
+                    MAG.EVENT.addEventListener(document.getElementById('search'), 'click', function(){
                         search_field = document.getElementById('search_field');
                         search_text = document.getElementById('search_text');
                         search_query = {};
@@ -2512,56 +2663,56 @@ var RAVEN = (function () {
                                 search_query[search_field.value] = 'JSON:' + search_text.value;
                             } else {
                                 search_query[search_field.value] = search_text.value;
-                            }                                                                   
-                            document.location.search = '?' + RAVEN.DISPLAY.create_new_query(search_query, ['sort']);
-                        }                                            
+                            }
+                            document.location.search = '?' + MAG.DISPLAY.create_new_query(search_query, ['sort']);
+                        }
                     });
                 },
-                
+
                 get_search_widget: function(container, model) {
                     var i, key_list, key_json, json_list;
                     key_json = {};
                     json_list = [];
-                    if (container !== null || container !== undefined) {                
-                        RAVEN.REST.apply_to_resource('_model', model, {'success' : function (response) {
-                            RAVEN.AUTH.check_permission(model, 'read', {'success': function (read_permission) {
+                    if (container !== null || container !== undefined) {
+                        MAG.REST.apply_to_resource('_model', model, {'success' : function (response) {
+                            MAG.AUTH.check_permission(model, 'read', {'success': function (read_permission) {
                                 if (read_permission === true) {
-                                    if (response.hasOwnProperty('_view') 
-                                            && response._view.hasOwnProperty('list') 
-                                            && response._view.list.hasOwnProperty('read')) {
+                                    if (response.hasOwnProperty('_view')
+                                        && response._view.hasOwnProperty('list')
+                                        && response._view.list.hasOwnProperty('read')) {
                                         key_list = response._view.list.read;
                                     }
                                 }
-                                RAVEN.AUTH.check_permission(model, 'update', {'success': function (update_permission) { 
+                                MAG.AUTH.check_permission(model, 'update', {'success': function (update_permission) {
                                     if (update_permission === true) {
-                                        if (response.hasOwnProperty('_view') 
-                                                && response._view.hasOwnProperty('list') 
-                                                && response._view.list.hasOwnProperty('update')) {
-                                            key_list = response._view.list.update;                                    
+                                        if (response.hasOwnProperty('_view')
+                                            && response._view.hasOwnProperty('list')
+                                            && response._view.list.hasOwnProperty('update')) {
+                                            key_list = response._view.list.update;
                                         }
-                                    }    
-                                    for (i = 0; i < key_list.length; i += 1) {
-                                        if (RAVEN.TYPES.is_string(key_list[i])) {
-                                            key_json['field'] = key_list[i];                                   
-                                            key_json['string'] = RAVEN.DISPLAY.capitalise_titles(key_list[i].replace(/_/g, ' '));
-                                            json_list.push(key_json);
-                                            key_json = {};
-                                        } else if (RAVEN.TYPES.is_object(key_list[i]) 
-                                                && !key_list[i].hasOwnProperty('type')
-                                                && key_list[i].hasOwnProperty('id')) {
-                                            key_json['field'] = key_list[i].id;
-                                            key_json['string'] = key_list[i].label || RAVEN.DISPLAY.capitalise_titles(key_list[i].id.replace(/_/g, ' '));
-                                            json_list.push(key_json);
-                                            key_json = {};
-                                        }                                
                                     }
-                                    RAVEN.FORMS.populate_select(json_list, document.getElementById('search_field'), 'field', 'string');
+                                    for (i = 0; i < key_list.length; i += 1) {
+                                        if (MAG.TYPES.is_string(key_list[i])) {
+                                            key_json['field'] = key_list[i];
+                                            key_json['string'] = MAG.DISPLAY.capitalise_titles(key_list[i].replace(/_/g, ' '));
+                                            json_list.push(key_json);
+                                            key_json = {};
+                                        } else if (MAG.TYPES.is_object(key_list[i])
+                                                   && !key_list[i].hasOwnProperty('type')
+                                                   && key_list[i].hasOwnProperty('id')) {
+                                            key_json['field'] = key_list[i].id;
+                                            key_json['string'] = key_list[i].label || MAG.DISPLAY.capitalise_titles(key_list[i].id.replace(/_/g, ' '));
+                                            json_list.push(key_json);
+                                            key_json = {};
+                                        }
+                                    }
+                                    MAG.FORMS.populate_select(json_list, document.getElementById('search_field'), 'field', 'string');
                                 }});
                             }});
                         }});
                     }
                 },
-                
+
                 sort_table: function(id) {
                     var new_args, index, direction;
                     index = id.lastIndexOf('_');
@@ -2571,51 +2722,53 @@ var RAVEN = (function () {
                         direction = -1;
                     }
                     new_args = {'sort': id.substring(0, index) + '|' + direction};
-                    window.location = '?' + RAVEN.DISPLAY.create_new_query(new_args);
+                    window.location = '?' + MAG.DISPLAY.create_new_query(new_args);
                 },
-                
+
                 add_sort_handlers: function(key_order) {
                     var i;
                     for (i = 0; i < key_order.length; i += 1) {
-                        if (RAVEN.TYPES.is_object(key_order[i])) {
+                        if (MAG.TYPES.is_object(key_order[i])) {
                             if (!key_order[i].hasOwnProperty('type')){
-                                RAVEN.EVENT.addEventListener(document.getElementById(key_order[i].id + '_up'), 'click', function (event){
-                                    RAVEN.DISPLAY.sort_table(event.target.id); 
-                                });
-                                RAVEN.EVENT.addEventListener(document.getElementById(key_order[i].id + '_down'), 'click', function (event){
-                                    RAVEN.DISPLAY.sort_table(event.target.id); 
-                                });                        
+                                if (document.getElementById(key_order[i].id + '_up') !== null) {
+                                    MAG.EVENT.addEventListener(document.getElementById(key_order[i].id + '_up'), 'click', function (event){
+                                        MAG.DISPLAY.sort_table(event.target.id);
+                                    });
+                                    MAG.EVENT.addEventListener(document.getElementById(key_order[i].id + '_down'), 'click', function (event){
+                                        MAG.DISPLAY.sort_table(event.target.id);
+                                    });
+                                }
                             }
-                        } else {                
-                            RAVEN.EVENT.addEventListener(document.getElementById(key_order[i] + '_up'), 'click', function (event){
-                                RAVEN.DISPLAY.sort_table(event.target.id); 
-                            });
-                            RAVEN.EVENT.addEventListener(document.getElementById(key_order[i] + '_down'), 'click', function (event){
-                                RAVEN.DISPLAY.sort_table(event.target.id); 
-                            });
+                        } else {
+                            if (document.getElementById(key_order[i] + '_up') !== null) {
+                                MAG.EVENT.addEventListener(document.getElementById(key_order[i] + '_up'), 'click', function (event){
+                                    MAG.DISPLAY.sort_table(event.target.id);
+                                });
+                                MAG.EVENT.addEventListener(document.getElementById(key_order[i] + '_down'), 'click', function (event){
+                                    MAG.DISPLAY.sort_table(event.target.id);
+                                });
+                            }
                         }
                     }
                 },
-                
+
                 create_instance_list_table: function (json, key_order, auto_sort, sort) {
                     var rows, header, i;
                     rows = [];
                     header = [];
                     /* header */
-                    header = RAVEN.DISPLAY.get_list_instance_header(key_order, header, auto_sort, sort);
+                    header = MAG.DISPLAY.get_list_instance_header(key_order, header, auto_sort, sort);
                     /* data */
                     for (i = 0; i < json.length; i += 1) {
-                        console.log(json[i])
                         if (rows.length % 2 === 1) {
-                            rows.push('<tr class="odd">' + RAVEN.DISPLAY.get_list_instance_data(json[i], key_order) + '</tr>');
+                            rows.push('<tr class="odd">' + MAG.DISPLAY.get_list_instance_data(json[i], key_order) + '</tr>');
                         } else {
-                            rows.push('<tr>' + RAVEN.DISPLAY.get_list_instance_data(json[i], key_order) + '</tr>');
+                            rows.push('<tr>' + MAG.DISPLAY.get_list_instance_data(json[i], key_order) + '</tr>');
                         }
                     }
-                    console.log(rows)
                     return '<tr class="header">' + header.join('') + '</tr>' + rows.join('');
                 },
-                
+
                 get_sort_links: function (key, direction) {
                     if (direction === 1) {
                         return '<div class="sort_links"><span id="' + key + '_up">&#9650;</span><span id="' + key + '_down">&#9663;</span></div>';
@@ -2625,46 +2778,46 @@ var RAVEN = (function () {
                         return '<div class="sort_links"><span id="' + key + '_up">&#9653;</span><span id="' + key + '_down">&#9663;</span></div>';
                     }
                 },
-                       
+
                 get_list_instance_header: function (key_order, header, auto_sort, sort) {
                     var i, label;
                     for (i = 0; i < key_order.length; i += 1) {
-                        if (RAVEN.TYPES.is_string(key_order[i])) {
-                            header.push('<th><div class="field_header">' + RAVEN.DISPLAY.capitalise_titles(key_order[i].replace(/_/g, ' ')) + '</div>');
+                        if (MAG.TYPES.is_string(key_order[i])) {
+                            header.push('<th><div class="field_header">' + MAG.DISPLAY.capitalise_titles(key_order[i].replace(/_/g, ' ')) + '</div>');
                             if (auto_sort === true) {
                                 if (key_order[i] === sort[0]) {
-                                    header.push(RAVEN.DISPLAY.get_sort_links(key_order[i], sort[1]));
+                                    header.push(MAG.DISPLAY.get_sort_links(key_order[i], sort[1]));
                                 } else {
-                                    header.push(RAVEN.DISPLAY.get_sort_links(key_order[i]));
+                                    header.push(MAG.DISPLAY.get_sort_links(key_order[i]));
                                 }
                             }
                             header.push('</th>');
-                        } else if (RAVEN.TYPES.is_object(key_order[i])) {
+                        } else if (MAG.TYPES.is_object(key_order[i])) {
                             if (key_order[i].hasOwnProperty('instance')) {
                                 label = key_order[i].label || key_order[i].id || '';
                                 header.push('<th class="container"><table class="inner"><tbody>');
-                                header.push('<tr><th colspan="' + key_order[i].instance.length + '">' + RAVEN.DISPLAY.capitalise_titles(label.replace(/_/g, ' ')) + '</th></tr>');
+                                header.push('<tr><th colspan="' + key_order[i].instance.length + '">' + MAG.DISPLAY.capitalise_titles(label.replace(/_/g, ' ')) + '</th></tr>');
                                 header.push('<tr>');
-                                header = RAVEN.DISPLAY.get_list_instance_header(key_order[i].instance, header);
+                                header = MAG.DISPLAY.get_list_instance_header(key_order[i].instance, header);
                                 header.push('</tr>');
                                 header.push('</tbody></table></th>');
                             } else if (key_order[i].hasOwnProperty('label')) {
-                                header.push('<th><div class="field_header">' + RAVEN.DISPLAY.capitalise_titles(key_order[i].label.replace(/_/g, ' ')) + '</div>')
+                                header.push('<th><div class="field_header">' + MAG.DISPLAY.capitalise_titles(key_order[i].label.replace(/_/g, ' ')) + '</div>')
                                 if (auto_sort === true) {
                                     if (key_order[i].id === sort[0]) {
-                                        header.push(RAVEN.DISPLAY.get_sort_links(key_order[i].id, sort[1]));
+                                        header.push(MAG.DISPLAY.get_sort_links(key_order[i].id, sort[1]));
                                     } else {
-                                        header.push(RAVEN.DISPLAY.get_sort_links(key_order[i].id));
+                                        header.push(MAG.DISPLAY.get_sort_links(key_order[i].id));
                                     }
-                                }   
+                                }
                                 header.push('</th>');
                             } else if (key_order[i].hasOwnProperty('id')) {
-                                header.push('<th><div class="field_header">' + RAVEN.DISPLAY.capitalise_titles(key_order[i].id.replace(/_/g, ' ')) + '</div>');
+                                header.push('<th><div class="field_header">' + MAG.DISPLAY.capitalise_titles(key_order[i].id.replace(/_/g, ' ')) + '</div>');
                                 if (auto_sort === true) {
                                     if (key_order[i].id === sort[0]) {
-                                        header.push(RAVEN.DISPLAY.get_sort_links(key_order[i].id, sort[1]));
+                                        header.push(MAG.DISPLAY.get_sort_links(key_order[i].id, sort[1]));
                                     } else {
-                                        header.push(RAVEN.DISPLAY.get_sort_links(key_order[i].id));
+                                        header.push(MAG.DISPLAY.get_sort_links(key_order[i].id));
                                     }
                                 }
                                 header.push('</th>');
@@ -2675,23 +2828,29 @@ var RAVEN = (function () {
                     }
                     return header;
                 },
-                
+
                 get_list_instance_data: function (json, key_order) {
                     var i, j, cells, param_string, param_list, entry, key;
                     param_string = '';
                     cells = [];
                     for (i = 0; i < key_order.length; i += 1) {
-                        if (RAVEN.TYPES.is_object(key_order[i]) 
-                                        && key_order[i].hasOwnProperty('type') 
-                                        && key_order[i].type === 'link') {
+                        if (MAG.TYPES.is_object(key_order[i])
+                            && key_order[i].hasOwnProperty('type')
+                            && key_order[i].type === 'link') {
                             if (!key_order[i].hasOwnProperty('href')) {
-                                // we can't have a link without a href - return empty cell 
+                                // we can't have a link without a href - return empty cell
                                 cells.push('<td></td>');
                             } else {
+                                param_string = '';
+                                param_list = [];
+                                param_string += '?';
+                                //in here check if back is True
+                                if (key_order[i].hasOwnProperty('back') && key_order[i].back === true) {
+                                    param_list.push('back=' + encodeURIComponent(window.location));
+                                }
+                                //if it is then catch the current url and add it to param list
+                                //need to move param list further out of the loop for this to work
                                 if (key_order[i].hasOwnProperty('params')) {
-                                    param_string = '';
-                                    param_list = [];
-                                    param_string += '?';
                                     for (entry in key_order[i].params) {
                                         if (key_order[i].params.hasOwnProperty(entry)) {
                                             if (key_order[i].params[entry].indexOf('VAR-') !== -1) {
@@ -2701,44 +2860,44 @@ var RAVEN = (function () {
                                             }
                                         }
                                     }
-                                    param_string += (param_list.join('&'));
                                 }
+                                param_string += (param_list.join('&'));
                                 cells.push('<td><a href="' + key_order[i].href + param_string + '">' + key_order[i].text + '</a></td>');
-                            }                        
+                            }
                         } else {
-                            if (RAVEN.TYPES.is_string(key_order[i])) {                   
+                            if (MAG.TYPES.is_string(key_order[i])) {
                                 key = key_order[i];
-                            } else if (RAVEN.TYPES.is_object(key_order[i])) {
-                                key = key_order[i].id;                
+                            } else if (MAG.TYPES.is_object(key_order[i])) {
+                                key = key_order[i].id;
                             }
                             if (json.hasOwnProperty(key)) {
-                                if (RAVEN.TYPES.is_string(json[key]) || RAVEN.TYPES.is_number(json[key])) {                        
-                                    cells.push('<td class="data">' + json[key] + '</td>');  
-                                } else if (RAVEN.TYPES.is_boolean(json[key])) {
+                                if (MAG.TYPES.is_string(json[key]) || MAG.TYPES.is_number(json[key])) {
+                                    cells.push('<td class="data">' + json[key] + '</td>');
+                                } else if (MAG.TYPES.is_boolean(json[key])) {
                                     if (json[key] === true) {
                                         cells.push('<td class="data">Y</td>');
                                     } else {
                                         cells.push('<td class="data">N</td>');
-                                    }                       
-                                } else if (RAVEN.TYPES.is_object(json[key])) {
-                                    if (key_order[i].hasOwnProperty('instance')) { 
+                                    }
+                                } else if (MAG.TYPES.is_object(json[key])) {
+                                    if (key_order[i].hasOwnProperty('instance')) {
                                         cells.push('<td class="container"><table class="inner"><tbody>');
                                         cells.push('<tr>');
-                                        cells = cells.concat(RAVEN.DISPLAY. get_list_instance_data(json[key], key_order[i].instance));
+                                        cells = cells.concat(MAG.DISPLAY. get_list_instance_data(json[key], key_order[i].instance));
                                         cells.push('</tr>');
                                         cells.push('</tbody></table></td>');
                                     } else {
                                         //process as dictionary
                                         cells.push('<td>');
-                                        cells.push(RAVEN.DISPLAY.format_dictionary(json[key]));
+                                        cells.push(MAG.DISPLAY.format_dictionary(json[key]));
                                         cells.push('</td>');
                                     }
-                                } else if (RAVEN.TYPES.is_array(json[key])) {
+                                } else if (MAG.TYPES.is_array(json[key])) {
                                     cells.push('<td class="container"><table class="inner"><tbody>');
                                     for (j = 0; j < json[key].length; j += 1) {
                                         cells.push('<tr>');
-                                        cells = cells.concat(RAVEN.DISPLAY. get_list_instance_data(json[key][j], key_order[i].instance));
-                                        cells.push('</tr>');                                
+                                        cells = cells.concat(MAG.DISPLAY. get_list_instance_data(json[key][j], key_order[i].instance));
+                                        cells.push('</tr>');
                                     }
                                     cells.push('</tbody></table></td>');
                                 } else {
@@ -2746,29 +2905,29 @@ var RAVEN = (function () {
                                 }
                             } else {
                                 cells.push('<td class="data"></td>');
-                            }                      
+                            }
                         }
                     }
                     return cells.join('');
                 },
-                
-                /* creates a new query dictionary from the current query (in the url) 
+
+                /* creates a new query dictionary from the current query (in the url)
                  * and the query dictionary supplied as the first argument to the function.
                  * If no second argument is provided then all fields from the current dict and the
                  * supplied dict are merged with the values from the supplied dict taking priority
                  * If the optional list of preserve_fields is supplied then only the keys in this list
                  * are preserved from the original query and then any new fields are added from the supplied
                  * query (values from the supplied query are again prioritised over the originals
-                 */       
+                 */
                 create_new_query: function (new_args, preserve_fields) {
                     var current_args, key, i, query_list;
-                    current_args = RAVEN.URL.get_current_query();
+                    current_args = MAG.URL.get_current_query();
                     query_list = [];
                     if (typeof preserve_fields === 'undefined') {
                         //keep everything but change the values of args in new args or just add them to existing
                         for (key in new_args) {
                             if (new_args.hasOwnProperty(key)) {
-                                current_args[key] = new_args[key];                          
+                                current_args[key] = new_args[key];
                             }
                         }
                         for (key in current_args) {
@@ -2776,31 +2935,31 @@ var RAVEN = (function () {
                                 query_list.push(key + '=' + current_args[key])
                             }
                         }
-                        return RAVEN.URL.build_query_string(current_args);
+                        return MAG.URL.build_query_string(current_args);
                     } else {
-                        // keep the things in the preserve_fields list and remove everything else 
+                        // keep the things in the preserve_fields list and remove everything else
                         for (i = 0; i < preserve_fields.length; i += 1) {
                             if (current_args.hasOwnProperty(preserve_fields[i])) {
                                 if (!new_args.hasOwnProperty(preserve_fields[i])) {
                                     new_args[preserve_fields[i]] = current_args[preserve_fields[i]];
                                 }
                             }
-                        }       
+                        }
                         for (key in new_args) {
                             if (new_args.hasOwnProperty(key)) {
                                 query_list.push(key + '=' + new_args[key])
                             }
                         }
                         return query_list.join(';');
-                    }           
+                    }
                 },
-                
+
                 format_dictionary: function (json) {
                     var key, cells;
                     cells = [];
                     for (key in json) {
                         if (key !== '_model' && json.hasOwnProperty(key)) {
-                            cells.push(RAVEN.DISPLAY.capitalise_titles(key.replace(/_/g, ' ')));
+                            cells.push(MAG.DISPLAY.capitalise_titles(key.replace(/_/g, ' ')));
                             cells.push(' = ');
                             cells.push(json[key]);
                             cells.push('<br/>');
@@ -2808,20 +2967,20 @@ var RAVEN = (function () {
                     }
                     return cells.join('');
                 },
-                        
+
                 show_validation: function(validation_data) {
                     var i;
                     if (validation_data.result === false) {
                         for (i = 0; i < validation_data.missing.length; i += 1) {
-                            RAVEN.ELEMENT.add_className(document.getElementById(validation_data.missing[i]).parentNode, 'missing');
+                            MAG.ELEMENT.add_className(document.getElementById(validation_data.missing[i]).parentNode, 'missing');
                         }
                         for (i = 0; i < validation_data.invalid.length; i += 1) {
-                            RAVEN.ELEMENT.add_className(document.getElementById(validation_data.invalid[i]), 'error');
+                            MAG.ELEMENT.add_className(document.getElementById(validation_data.invalid[i]), 'error');
                         }
-                    } 
+                    }
                     return;
                 },
-                
+
                 capitalise_titles: function(text) {
                     var glue, j;
                     glue = ['of', 'for', 'and', 'in', 'to'];
@@ -2830,7 +2989,7 @@ var RAVEN = (function () {
                         return (glue.indexOf(j.toLowerCase())<0)?j:j.toLowerCase();
                     });
                 },
-                
+
                 get_navigation_widget: function (container, total_records, page_number, page_size, display_options) {
                     var previous_string, next_string, total_pages, first_page, last_page, select_string, option_string, i, buttons;
                     var previous_text, first_text, next_text, last_text;
@@ -2846,7 +3005,7 @@ var RAVEN = (function () {
                             first_text = '&lt;&lt;';
                             next_text = '&gt;';
                             last_text = '&gt;&gt;';
-                        } 
+                        }
                         if (display_options.buttons && display_options.buttons === true) {
                             previous_text_disabled = '<button class="linkbutton" type="button" disabled="disabled">' + previous_text + '</button>';
                             first_text_disabled = '<button class="linkbutton" type="button" disabled="disabled">' + first_text + '</button>';
@@ -2858,16 +3017,16 @@ var RAVEN = (function () {
                             last_text = '<button class="linkbutton" type="button">' + last_text + '</button>';
                             buttons = true;
                         }
-                    } 
+                    }
                     if (page_number === undefined){
                         page_number = 1;
                     } else {
                         page_number = parseInt(page_number);
-                    }          
-                    total_pages = Math.ceil(total_records / page_size);           
+                    }
+                    total_pages = Math.ceil(total_records / page_size);
                     if (page_number > 1){
-                        first_page = '<a href="?' + RAVEN.DISPLAY.create_new_query({'page': 1}) + '">' + first_text + '</a>'; 
-                        previous_string = '<a href="?' + RAVEN.DISPLAY.create_new_query({'page': (page_number-1)}) + '">' + previous_text + '</a>';
+                        first_page = '<a href="?' + MAG.DISPLAY.create_new_query({'page': 1}) + '">' + first_text + '</a>';
+                        previous_string = '<a href="?' + MAG.DISPLAY.create_new_query({'page': (page_number-1)}) + '">' + previous_text + '</a>';
                     } else {
                         if (buttons == true) {
                             first_page = first_text_disabled;
@@ -2875,11 +3034,11 @@ var RAVEN = (function () {
                         } else {
                             first_page = first_text;
                             previous_string = previous_text;
-                        }              
+                        }
                     }
                     if (page_number < total_pages){
-                        last_page = '<a href="?' + RAVEN.DISPLAY.create_new_query({'page': total_pages}) + '">' + last_text + '</a>';
-                        next_string = '<a href="?' + RAVEN.DISPLAY.create_new_query({'page': (page_number+1)})+ '">' + next_text + '</a>';
+                        last_page = '<a href="?' + MAG.DISPLAY.create_new_query({'page': total_pages}) + '">' + last_text + '</a>';
+                        next_string = '<a href="?' + MAG.DISPLAY.create_new_query({'page': (page_number+1)})+ '">' + next_text + '</a>';
                     } else {
                         if (buttons == true) {
                             last_page = last_text_disabled;
@@ -2887,7 +3046,7 @@ var RAVEN = (function () {
                         } else {
                             last_page = last_text;
                             next_string = next_text;
-                        }                
+                        }
                     }
                     option_string = '';
                     for (i=1; i<=total_pages; i+=1){
@@ -2895,22 +3054,25 @@ var RAVEN = (function () {
                             option_string += '<option value="' + i + '" selected="selected">' + i + '</option>';
                         } else {
                             option_string += '<option value="' + i + '">' + i + '</option>';
-                        }           
+                        }
                     }
                     select_string = '<select id="page_select">' + option_string + '</select>';
                     if (buttons){
                         container.innerHTML =  first_page + previous_string + ' page ' + select_string + ' of ' + total_pages + ' ' + next_string + last_page;
                     } else {
                         container.innerHTML =  first_page + ' | ' +  previous_string + ' | page ' + select_string + ' of ' + total_pages + ' | ' + next_string  + ' | ' +   last_page;
-                    }   
-                    RAVEN.EVENT.addEventListener(document.getElementById('page_select'), 'change', function(event) {
-                        window.location = '?' + RAVEN.DISPLAY.create_new_query({'page': (parseInt(event.target.value))});
+                    }
+                    MAG.EVENT.addEventListener(document.getElementById('page_select'), 'change', function(event) {
+                        window.location = '?' + MAG.DISPLAY.create_new_query({'page': (parseInt(event.target.value))});
                     });
                 }
                 // End of submodule DISPLAY
             };
         }()) // No trailing comma for last submodule
 
-        // End of module RAVEN
+        // End of module MAG
     };
 }());
+
+// Compatibility for old scripts.
+var RAVEN = MAG;
