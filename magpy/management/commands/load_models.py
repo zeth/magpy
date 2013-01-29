@@ -47,7 +47,7 @@ class Command(BaseCommand):
 
         if not 'modeldescription' in model:
             print "Warning: Model %s in %s does not have a " \
-                "'modeldescription' key" % index, module_name
+                "'modeldescription' key" % (index, module_name)
             print "Warning: Apps which assume a modeldescription may break."
 
     @staticmethod
