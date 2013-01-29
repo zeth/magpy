@@ -89,10 +89,12 @@ class Database(object):
         else:
             category_instance = {'_id': category,
                                  setting: []}
-        category_instance[setting].append(value)
-
-        settings = self.get_collection('_settings')
-        settings.save(category_instance)
+        if value not in category_instance[setting]:
+            category_instance[setting].append(value)
+            settings = self.get_collection('_settings')
+            settings.save(category_instance)
+        else:
+            print "Already set, skipping."
 
     def remove_list_setting(self, category, setting, value):
         """Add a value to a list setting."""
