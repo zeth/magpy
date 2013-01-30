@@ -430,14 +430,25 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         Start by looking if it already exists!"""
         data = json.loads(self.request.body,
                           object_hook=json_util.object_hook)
-        if not '_id' in data:
-            # Skip straight on
-            self.validate_instance(data, self._create_instance)
-        else:
-            callback = partial(self._process_post, data=data)
-            coll = self.get_collection(resource)
-            coll.find_one({'_id': data['_id']},
-                          callback=callback)
+        if isinstance(data, dict):
+            if not '_id' in data:
+                # Skip straight on
+                self.validate_instance(data, self._create_instance)
+            else:
+                callback = partial(self._process_post, data=data)
+                coll = self.get_collection(resource)
+                coll.find_one({'_id': data['_id']},
+                              callback=callback)
+        else :
+            for object in data:
+                if not '_id' in object:
+                    # Skip straight on
+                    self.validate_instance(object, self._create_instance)
+                else:
+                    callback = partial(self._process_post, data=object)
+                    coll = self.get_collection(resource)
+                    coll.find_one({'_id': object['_id']},
+                                  callback=callback)
 
     def _process_post(self, result, error, data):
         """Only create a new one if it does not exist."""
