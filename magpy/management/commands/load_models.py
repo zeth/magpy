@@ -26,10 +26,11 @@ class Command(BaseCommand):
             for index, model in enumerate(new_models):
                 self.validate_model(model, index, module_name)
 
-            models.extend(getattr(new_models, 'MODELS', []))
+            models.extend(new_models)
 
         instanceloader = InstanceLoader(validation=False)
         instanceloader.add_instances(models)
+        print ""
 
     def validate_model(self, model, index, module_name):
         """Check each model for basic sanity."""
