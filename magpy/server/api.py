@@ -170,7 +170,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         collection = self.get_collection(resource)
         callback = partial(self._update_history_for_field,
                            versional_comment=versional_comment)
-        collection.find(spec=spec).to_list(callback)
+        collection.find(spec=spec).to_list(callback=callback)
 
     def _update_history_for_field(self, instances,
                                   error,
@@ -250,7 +250,8 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
     def _get_previous_instances(self, resource, ids, success):
         """Get the old instances first."""
         resources = self.get_collection(resource)
-        resources.find(spec={'_id': {'$in': tuple(ids)}}).to_list(success)
+        resources.find(spec={'_id': {'$in': tuple(ids)}}).to_list(
+            callback=success)
 
     def _check_previous_exist(self,
                               previous_instances,
