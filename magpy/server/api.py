@@ -654,7 +654,7 @@ class CommandHandler(tornado.web.RequestHandler,
                            objectid=objectid)
         coll.find(
             spec={'_id': {'$regex': '^%s' % objectid}},
-            fields=['_id']).to_list(callback)
+            fields=['_id']).to_list(callback=callback)
 
     def _handle_uniquify(self, response, error, objectid):
         """Handle the unique."""
