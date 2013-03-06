@@ -2056,7 +2056,7 @@ var MAG = (function () {
                 get_value: function (elem) {
                     var value;
                     value = null;
-                    if ((elem.tagName === 'INPUT' && elem.type !== 'checkbox') || elem.tagName === 'TEXTAREA') {
+                    if ((elem.tagName === 'INPUT' && (elem.type !== 'checkbox' && elem.type !== 'radio')) || elem.tagName === 'TEXTAREA') {
                         if (elem.value !== '') {
                             value = elem.value;
                             if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
@@ -2102,8 +2102,14 @@ var MAG = (function () {
                                 } else {
                                     value = null;
                                 }
+                            } else {
+                                if (elem.type === 'radio') {
+                                    if (elem.checked  === true) {
+                                        value = elem.value;
+                                    }
+                                }     
                             }
-                        }
+                        } 
                     }
                     return value;
                 },
@@ -2122,8 +2128,9 @@ var MAG = (function () {
                     for (i = 0; i < elems.length; i += 1) {
                         elem = elems[i];
                         value = null;
-                        if (!elem.getAttribute('disabled')) {
+                        if (!elem.getAttribute('disabled')) { //TODO: this does not seem to always work!
                             if (elem.name ||  MAG.ELEMENT.has_className(elem, 'data_group')) {
+                                console.log(elem)
                                 if (MAG.ELEMENT.has_className(elem, 'data_group')) {
                                     /** construct a list of all elements
                                         descending from elem */
