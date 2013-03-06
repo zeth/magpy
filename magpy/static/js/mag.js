@@ -2130,7 +2130,6 @@ var MAG = (function () {
                         value = null;
                         if (!elem.getAttribute('disabled')) { //TODO: this does not seem to always work!
                             if (elem.name ||  MAG.ELEMENT.has_className(elem, 'data_group')) {
-                                console.log(elem)
                                 if (MAG.ELEMENT.has_className(elem, 'data_group')) {
                                     /** construct a list of all elements
                                         descending from elem */
