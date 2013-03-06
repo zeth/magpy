@@ -2509,11 +2509,14 @@ var MAG = (function () {
                  * options are
                  * key_order: list of keys (supplied one will overwrite the one in the model)
                  * auto_filter: boolean to say whether or not to attempt to provide automatic sorting on fields
+                 * preprocess: provide a preprocessing callback
                  *
                  */
                 //TODO: add a default sort to the info in citation_models and use it here
                 show_instance_list_table: function (model, container_id, options) {
-                    var container, html, key, key_list, auto_sort, param_dict, page_num, page_size, search, criteria, sort, filter_key;
+                    var container, html, key, key_list, auto_sort, param_dict,
+                        page_num, page_size, search, criteria, sort, filter_key,
+                        callback;
                     container = document.getElementById(container_id) || document.getElementsByTagName('body')[0];
                     html = [];
                     //supplied options
@@ -2591,40 +2594,20 @@ var MAG = (function () {
                                         }
                                     }
                                     MAG.REST.apply_to_list_of_resources(model, {'criteria' : criteria, 'force_reload': true, 'success' : function (json) {
-                                        if (json.results.length > 0) {
-                                            html = MAG.DISPLAY.create_instance_list_table(json.results, key_list, auto_sort, criteria._sort[0] || undefined);
-                                            container.innerHTML = '<table class="data_list">' + html + '</table>';
-                                            if (auto_sort === true) {
-                                                MAG.DISPLAY.add_sort_handlers(key_list);
-                                            }
-                                            if (document.getElementById('page_title') !== null) {
-                                                document.getElementById('page_title').innerHTML = MAG.DISPLAY.capitalise_titles(model) + ' List';
-                                            }
-                                            if (document.getElementById('page_nav') !== null) {
-                                                if (document.getElementById('page_size') !== null) {
-                                                    document.getElementById('page_size').innerHTML = '<select id="page_size_select"></select> per page';
-                                                    MAG.FORMS.populate_select(['20', '50', '100', 'all'], document.getElementById('page_size_select'), undefined, undefined, page_size);
-                                                    MAG.EVENT.addEventListener(document.getElementById('page_size_select'), 'change', function(event){
-                                                        window.location = '?' + MAG.DISPLAY.create_new_query({'size': (parseInt(event.target.value))});
-                                                    });
-                                                }
-                                                MAG.DISPLAY.get_navigation_widget(document.getElementById('page_nav'), json.count, page_num, page_size, {'buttons': true, 'angle_brackets': true});
-                                            }
-                                            if (document.getElementById('search_widget') !== null) {
-                                                for (key in param_dict) {
-                                                    if (key !== 'page' && param_dict.hasOwnProperty(key)) {
-                                                        filter_key = key;
-                                                    }
-                                                }
-                                                if (typeof filter_key !== 'undefined') {
-                                                    MAG.DISPLAY.create_search_widget(model, model_json, filter_key);
-                                                } else {
-                                                    MAG.DISPLAY.create_search_widget(model, model_json);
-                                                }
-                                            }
-                                        } else {
-                                            document.getElementById('content').innerHTML = '<br/><br/>There are no entries in the database to view.';
+                                        callback = function(data) {
+                                            MAG.DISPLAY.populate_show_instance_list_table(
+                                                data, key_list, auto_sort, criteria,
+                                                html, container, model, page_num,
+                                                param_dict, model_json, page_size,
+                                                filter_key);
                                         }
+
+                                        if (typeof options.preprocess != "undefined") {
+                                            options.preprocess(json, callback);
+                                        } else {
+                                            callback(json);
+                                        }
+
                                     }});
                                 }
                             }});
@@ -2632,6 +2615,49 @@ var MAG = (function () {
                             alert('no order list for ' + model);
                         }
                     }});
+                },
+
+                populate_show_instance_list_table: function(
+                    data, key_list, auto_sort, criteria, html,
+                    container, model, page_num, param_dict, model_json,
+                    page_size, filter_key) {
+                    var key;
+                    if (data.results.length > 0) {
+                        html = MAG.DISPLAY.create_instance_list_table(
+                            data.results, key_list, auto_sort,
+                            criteria._sort[0] || undefined);
+                        container.innerHTML = '<table class="data_list">' + html + '</table>';
+                        if (auto_sort === true) {
+                            MAG.DISPLAY.add_sort_handlers(key_list);
+                        }
+                        if (document.getElementById('page_title') !== null) {
+                            document.getElementById('page_title').innerHTML = MAG.DISPLAY.capitalise_titles(model) + ' List';
+                        }
+                        if (document.getElementById('page_nav') !== null) {
+                            if (document.getElementById('page_size') !== null) {
+                                document.getElementById('page_size').innerHTML = '<select id="page_size_select"></select> per page';
+                                MAG.FORMS.populate_select(['20', '50', '100', 'all'], document.getElementById('page_size_select'), undefined, undefined, page_size);
+                                MAG.EVENT.addEventListener(document.getElementById('page_size_select'), 'change', function(event){
+                                    window.location = '?' + MAG.DISPLAY.create_new_query({'size': (parseInt(event.target.value))});
+                                });
+                            }
+                            MAG.DISPLAY.get_navigation_widget(document.getElementById('page_nav'), data.count, page_num, page_size, {'buttons': true, 'angle_brackets': true});
+                        }
+                        if (document.getElementById('search_widget') !== null) {
+                            for (key in param_dict) {
+                                if (key !== 'page' && param_dict.hasOwnProperty(key)) {
+                                    filter_key = key;
+                                }
+                            }
+                            if (typeof filter_key !== 'undefined') {
+                                MAG.DISPLAY.create_search_widget(model, model_json, filter_key);
+                            } else {
+                                MAG.DISPLAY.create_search_widget(model, model_json);
+                            }
+                        }
+                    } else {
+                        document.getElementById('content').innerHTML = '<br/><br/>There are no entries in the database to view.';
+                    }
                 },
 
                 create_search_widget: function (model, model_json, filter_key) {
