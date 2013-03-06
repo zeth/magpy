@@ -2308,11 +2308,16 @@ var MAG = (function () {
                     return;
                 },
 
-                submit: function (form_id, next) {
+
+                /** Options
+                    next:
+                    success: callback function called on success.
+                 */
+                submit: function (form_id, options) {
                     var validation;
                     validation = MAG.FORMS.validate_form(form_id);
                     if (validation.result === true) {
-                        MAG.FORMS.save(form_id, next);
+                        MAG.FORMS.save(form_id, options);
                     } else {
                         MAG.DISPLAY.show_validation(validation);
                         MAG.FORMS.show_error_box('<br/>The data is not valid and cannot be saved. Please fix the errors and resave.'
@@ -2322,37 +2327,43 @@ var MAG = (function () {
                     return;
                 },
 
-                save: function (form_id, next) {
-                    var json;
-                    json = MAG.FORMS.serialize_form(form_id);
-                    if (json.hasOwnProperty('_id')) {
-                        MAG.FORMS.save_resource(json._model, json, next, 'update');
-                    } else {
-                        MAG.FORMS.save_resource(json._model, json, next, 'create');
+                save: function (form_id, options) {
+                    if (typeof options == "undefined") {
+                        options = {};
                     }
-                    return;
+                    options.json = MAG.FORMS.serialize_form(form_id);
+                    options.model = options.json._model
+                    if (options.json.hasOwnProperty('_id')) {
+                        options.type = 'update';
+                    } else {
+                        options.type = 'create';
+                    }
+                    return MAG.FORMS.save_resource(form_id, options);
                 },
 
-                save_resource: function (model, json, next, type) {
-                    var options, item;
-                    options = {'success': function(response) {
-                        if (next === undefined) {
-                            window.location.search = response._model + '=' + response._id;
-                        } else {
-                            window.location = next;
-                        }
+                save_resource: function (form_id, options) {
+                    var newoptions, item;
+                    newoptions = {'success': function(response) {
                         for (item in localStorage) {
                             if (item.indexOf('/api/' + form_id.replace('_form', '')) !== -1) {
                                 delete localStorage[item];
                             }
                         }
+                        if (typeof options.success != "undefined") {
+                            options.success(response);
+                        }
+                        if (options.next === undefined) {
+                            window.location.search = response._model + '=' + response._id;
+                        } else {
+                            window.location = options.next;
+                        }
                     }, 'error': function(response) {
-                        MAG.FORMS.handle_error('create', response, json._model);
+                        MAG.FORMS.handle_error('create', response, options.json._model);
                     }};
-                    if (type === 'create') {
-                        MAG.REST.create_resource(json._model, json, options);
-                    } else if (type === 'update') {
-                        MAG.REST.update_resource(json._model, json, options);
+                    if (options.type === 'create') {
+                        MAG.REST.create_resource(options.json._model, options.json, newoptions);
+                    } else if (options.type === 'update') {
+                        MAG.REST.update_resource(options.json._model, options.json, newoptions);
                     }
                 },
 
