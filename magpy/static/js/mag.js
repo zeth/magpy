@@ -2350,12 +2350,9 @@ var MAG = (function () {
                             }
                         }
                         if (typeof options.success != "undefined") {
-                            options.success(response);
-                        }
-                        if (options.next === undefined) {
-                            window.location.search = response._model + '=' + response._id;
+                            options.success(response, options);
                         } else {
-                            window.location = options.next;
+                            MAG.FORMS.reloader(response, options);
                         }
                     }, 'error': function(response) {
                         MAG.FORMS.handle_error('create', response, options.json._model);
@@ -2364,6 +2361,14 @@ var MAG = (function () {
                         MAG.REST.create_resource(options.json._model, options.json, newoptions);
                     } else if (options.type === 'update') {
                         MAG.REST.update_resource(options.json._model, options.json, newoptions);
+                    }
+                },
+
+                reloader: function(response, options) {
+                    if (options.next === undefined) {
+                        window.location.search = response._model + '=' + response._id;
+                    } else {
+                        window.location = options.next;
                     }
                 },
 
