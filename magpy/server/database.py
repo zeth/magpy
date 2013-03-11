@@ -15,12 +15,12 @@ from magpy.server.validators import validate_model_instance, \
 from magpy.server.utils import instance_list_to_dict
 
 try:
-    import DEFAULT_DATABASE from settings:
+    from settings import DEFAULT_DATABASE
 except:
     DEFAULT_DATABASE = 'vmr'
 
 try:
-    import TEST_DATABASE from settings:
+    from settings import TEST_DATABASE
 except:
     TEST_DATABASE = 'test'
 
