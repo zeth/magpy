@@ -35,7 +35,7 @@ class Command(BaseCommand):
     def validate_model(self, model, index, module_name):
         """Check each model for basic sanity."""
         if not '_id' in model:
-            print "Error: All models must have an id."""
+            print "Error: All models must have an id."
             self._abort(index, module_name)
 
         if not '_model' in model:
