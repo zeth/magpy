@@ -15,8 +15,15 @@ from magpy.server.validators import validate_model_instance, \
 from magpy.server.utils import instance_list_to_dict
 from pymongo.errors import ConnectionFailure
 
-DEFAULT_DATABASE = 'vmr'
-TEST_DATABASE = 'test'
+try:
+    from settings import DEFAULT_DATABASE
+except:
+    DEFAULT_DATABASE = 'vmr'
+
+try:
+    from settings import TEST_DATABASE
+except:
+    TEST_DATABASE = 'test'
 
 
 class Database(object):
