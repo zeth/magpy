@@ -8,6 +8,10 @@ The primary use of _model and _settings to give them custom fields.
 _user and_group do not need custom fields, but they are often useful,
 so nothing in Magpy stops applications from adding them.
 
+To load these models into your database, use the following command:
+
+mag.py load_models magpy.server
+
 """
 
 MODELS = (
