@@ -9,7 +9,7 @@ from functools import partial
 from magpy.server.database import DatabaseMixin
 from magpy.server.utils import dejsonify
 
-# pylint: disable=R0904
+# pylint: disable=R0904,W0613,R0913
 
 
 def permission_required(operation):
@@ -71,12 +71,13 @@ class AuthenticationMixin(object):
         success - the callback to run on success.
         failure - the callback to run on failure.
         """
-        permissions = {arg: dejsonify(self.request.arguments[arg][0]) \
-                           for arg in self.request.arguments}
+        permissions = {arg: dejsonify(self.request.arguments[arg][0])
+                       for arg in self.request.arguments}
         if not failure:
             failure = self.permission_denied
 
         # 1. get user
+        # 2. get relevant groups
         # 2. get models
         # 3. combine them together
         # 4. Test it against the input
@@ -84,12 +85,14 @@ class AuthenticationMixin(object):
         if not self.get_secure_cookie("user"):
             # We are not logged in, go to the next stage
             return self._get_models_for_check_perms(
+                groups=None,
+                error=None,
                 user=None,
                 permissions=permissions,
                 success=success,
                 failure=failure)
 
-        callback = partial(self._get_models_for_check_perms,
+        callback = partial(self._get_relevant_groups,
                            permissions=permissions,
                            success=success,
                            failure=failure)
@@ -98,9 +101,41 @@ class AuthenticationMixin(object):
                       callback=callback,
                       fields=['_permissions'])
 
+    def _get_relevant_groups(self,
+                             user,
+                             error,
+                             permissions,
+                             success,
+                             failure):
+        """Get relevant groups.
+        Result is a list of results, e.g.:
+        [{u'_id': u'citations_editors',
+        u'_permissions': {u'author':
+        {u'update': {u'author': True}}}}]
+        """
+        callback = partial(self._get_models_for_check_perms,
+                           user=user,
+                           permissions=permissions,
+                           success=success,
+                           failure=failure)
+
+        groups = self.get_collection('_group')
+
+        model_names = permissions.keys()
+        or_query = [
+            {
+                '_permissions.%s' % model_name: {
+                    "$exists": True}} for model_name in model_names]
+
+        groups.find(
+            {'members': user['_id'],
+             '$or': or_query},
+            ['_permissions']).to_list(callback=callback)
+
     def _get_models_for_check_perms(self,
-                                    user,
+                                    groups,
                                     error,
+                                    user,
                                     permissions,
                                     success,
                                     failure):
@@ -108,50 +143,65 @@ class AuthenticationMixin(object):
         callback = partial(self._do_check_permissions,
                            permissions=permissions,
                            user=user,
+                           groups=groups,
                            success=success,
                            failure=failure)
 
         models = self.get_collection('_model')
         models.find(
             spec={
-                '_id':
-                    {'$in': tuple(permissions.keys())}},
+                '_id': {
+                    '$in': tuple(permissions.keys())}},
             fields=['_permissions']).to_list(callback=callback)
 
     @staticmethod
     def _overlay_permissions(models,
-                             user):
-        """Combine the user and model permissions."""
+                             user,
+                             groups):
+        """Combine the user, group and model permissions.
+        1. We start with default permissions of read-only,
+        2. We overlay any permissions set in the model,
+        3. We overlay any permissions in a group,
+        4. We overlay any permissions in the user.
+        """
         permissions = {}
+
         for model in models:
+            model_permissions = {
+                'read': True,
+                'create': False,
+                'update': False,
+                'delete': False}
+
             if '_permissions' in model:
-                permissions[model['_id']] = model['_permissions']
-            else:
-                permissions[model['_id']] = {
-                    'read': True,
-                    'create': False,
-                    'update': False,
-                    'delete': False
-                    }
+                model_permissions.update(model['_permissions'])
+
+            if groups:
+                for group in groups:
+                    if model['_id'] in group['_permissions']:
+                        model_permissions.update(
+                            group['_permissions'][model['_id']])
+
             if user:
                 if '_permissions' in user:
                     if model['_id'] in user['_permissions']:
-                        for key, value in \
-                                user['_permissions'][model['_id']].iteritems():
-                            permissions[model['_id']][key] = value
+                        model_permissions.update(
+                            user['_permissions'][model['_id']])
+
+            permissions[model['_id']] = model_permissions
+
         return permissions
 
     def _do_check_permissions(self,
                               models,
                               error,
                               user,
+                              groups,
                               permissions,
                               success,
                               failure):
         """Process the stored permissions."""
-        stored_permissions = self._overlay_permissions(models, user)
-        print "stored permissions", stored_permissions
-        print "requested_permissions", permissions
+        stored_permissions = self._overlay_permissions(models, user, groups)
         missing_permissions = {}
 
         for resource, perm_list in permissions.iteritems():
@@ -225,7 +275,7 @@ class AuthenticationMixin(object):
     def _check_model(self, model, error, permission,
                      on_success, on_failure, *args, **kwargs):
         """See that permissions there are in the model."""
-        if model == None:
+        if not model:
             return on_failure()
         if '_permissions' not in model:
             return self._standard(permission, on_success, on_failure)
@@ -241,7 +291,6 @@ class AuthenticationMixin(object):
     def _standard(permission, success, failure):
         """Give the standard answer."""
         if permission == 'read':
-            print "Got here"
             return success()
         else:
             return failure()
@@ -254,8 +303,8 @@ class AuthenticationMixin(object):
 
 
 class AuthPermissionsHandler(tornado.web.RequestHandler,
-                            DatabaseMixin,
-                            AuthenticationMixin):
+                             DatabaseMixin,
+                             AuthenticationMixin):
     """Check permissions.
     """
     @tornado.web.asynchronous
@@ -265,7 +314,7 @@ class AuthPermissionsHandler(tornado.web.RequestHandler,
         self.check_permissions(success,
                                failure)
 
-    def _return_instance(self, instance, error = None):
+    def _return_instance(self, instance, error=None):
         """Return a single instance or anything else that can become JSON."""
         self.set_header("Content-Type", "application/json; charset=UTF-8")
         self.write(json.dumps(instance, default=json_util.default))
@@ -297,10 +346,10 @@ class AuthPermissionHandler(tornado.web.RequestHandler,
 
 class WhoAmIMixin(object):
     """Answer who am I queries - get user information."""
+    # pylint: disable=R0903
     @tornado.web.asynchronous
     def who_am_i(self, success, failure=None):
         """If logged in, find user from cookie."""
-        print "Success", success
         if not self.get_secure_cookie("user"):
             if failure:
                 return failure()
