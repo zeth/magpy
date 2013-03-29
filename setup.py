@@ -1,6 +1,20 @@
+"""Setup file for Magpy.
+
+To use type:
+
+python setup.py install
+
+"""
 #!/usr/bin/env python
 
-from distutils.core import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distribute_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup
+#except ImportError:
+#    from distutils.core import setup
 
 setup(name='Magpy',
       version='1.0',
@@ -22,4 +36,5 @@ setup(name='Magpy',
                     'magpy.conf.app_template.app_name': ['static/index.html'],
                     'magpy': ['static/js/mag.js'],
                     },
+      install_requires=['motor'],
      )
