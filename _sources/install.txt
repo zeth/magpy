@@ -46,7 +46,7 @@ We happen to like Nginx_, which on Ubuntu you can install with::
 
     sudo apt-get install nginx
 
-However, there is no reason why lighttpd or Apache or Google App Engine or whatever you want.
+However, there is no reason why you cannot use lighttpd or Apache or Google App Engine or whatever you want.
 
 Test Framework
 --------------
