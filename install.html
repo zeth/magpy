@@ -1,0 +1,160 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installing Magpy &mdash; Magpy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Magpy 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to Magpy’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Magpy’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Magpy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installing-magpy">
+<h1>Installing Magpy<a class="headerlink" href="#installing-magpy" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Download the code using:</p>
+<div class="highlight-python"><pre>git clone https://github.com/zeth/magpy</pre>
+</div>
+<p>Enter the Magpy source directory:</p>
+<div class="highlight-python"><pre>cd magpy</pre>
+</div>
+<p>Install Magpy:</p>
+<div class="highlight-python"><pre>python setup.py install</pre>
+</div>
+<p>As always, virtualenv can be a very useful tool.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Operating System</p>
+<p>At the moment, we assume you are installing Magpy on a Posix system i.e. GNU/Linux or BSD or Mac OS X, etc.</p>
+<p>There is no particular reason why Magpy should not work on Windows, but no one has tested it yet.</p>
+<p class="last">Indeed, the majority of the known users have Ubuntu Server, so we strongly appreciate any feedback from users of other distributions and operating systems.</p>
+</div>
+</div>
+<div class="section" id="database">
+<h2>Database<a class="headerlink" href="#database" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Database</p>
+<p class="last">It was originally conceived that Magpy would allow the user to choose their own database. However, we liked MongoDB so much that we never bothered supporting another database, so currently you have the choice of that.</p>
+</div>
+<p>Magpy uses the database <a class="reference external" href="http://www.mongodb.org/">MongoDB</a>, you can get the MongoDB from their website or your Linux distribution has probably packaged it already, e.g. on Ubuntu:</p>
+<div class="highlight-python"><pre>sudo apt-get install mongodb</pre>
+</div>
+</div>
+<div class="section" id="web-server">
+<h2>Web Server<a class="headerlink" href="#web-server" title="Permalink to this headline">¶</a></h2>
+<p>To actually deploy your Magpy powered applications, you need some kind of web server. It is also quite useful when developing your site to have the web server in place, but it is not absolutely required, especially if you are just doing initial experiments or are evaluating if you like Magpy.</p>
+<p>We happen to like <a class="reference external" href="http://nginx.org/">Nginx</a>, which on Ubuntu you can install with:</p>
+<div class="highlight-python"><pre>sudo apt-get install nginx</pre>
+</div>
+<p>However, there is no reason why lighttpd or Apache or Google App Engine or whatever you want.</p>
+</div>
+<div class="section" id="test-framework">
+<h2>Test Framework<a class="headerlink" href="#test-framework" title="Permalink to this headline">¶</a></h2>
+<p>To use Magpy&#8217;s test framework to test your apps, you need to install <a class="reference external" href="http://code.google.com/p/pyv8/">PyV8</a>:</p>
+<div class="highlight-python"><pre>pip install pyv8</pre>
+</div>
+<p>You will only need this on your development machine, it is not required on your deployment server.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installing Magpy</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#database">Database</a></li>
+<li><a class="reference internal" href="#web-server">Web Server</a></li>
+<li><a class="reference internal" href="#test-framework">Test Framework</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to Magpy&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/install.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Magpy’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">Magpy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Zeth.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

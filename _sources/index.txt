@@ -6,11 +6,16 @@
 Welcome to Magpy's documentation!
 =================================
 
+Magpy is a web application framework based on an asynchronous RESTful NoSQL approach.
+
+Magpy also plays nicely with your favourite web framework. For example, you might have an existing site built Django, Tornado, or Ruby on Rails, etc, but you want to add a fast and powerful REST API and/or some client side HTML5 features.
+
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
+   install.rst
 
 
 Indices and tables
