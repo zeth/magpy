@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Management Command Tool.
 Based originally on Django's one."""
+from __future__ import print_function
 
 import os
 import sys
@@ -14,6 +15,8 @@ from importlib import import_module
 from magpy.server.database import Database
 from magpy.server.validators import smart_str
 import magpy
+import six
+from six.moves import filter
 
 # A cache of loaded commands, so that call_command
 # doesn't have to reload every time it's called.
@@ -213,7 +216,7 @@ class ManagementUtility(object):
                 "Available subcommands:",
             ]
             commands_dict = collections.defaultdict(lambda: [])
-            for name, app in get_commands().iteritems():
+            for name, app in six.iteritems(get_commands()):
                 if app == 'django.core':
                     app = 'django'
                 else:
@@ -286,8 +289,9 @@ class ManagementUtility(object):
 
         # subcommand
         if cword == 1:
-            print ' '.join(sorted(filter(lambda x: x.startswith(curr),
-                                         subcommands)))
+            debug_text = ' '.join(sorted(filter(lambda x: x.startswith(curr),
+                                                subcommands)))
+            print(debug_text)
         # subcommand options
         # special case: the 'help' subcommand has no options
         elif cwords[0] in subcommands and cwords[0] != 'help':
@@ -308,7 +312,12 @@ class ManagementUtility(object):
                         subcommand_cls.option_list]
             # filter out previously specified options from available options
             prev_opts = [x.split('=')[0] for x in cwords[1:cword - 1]]
-            options = filter(lambda (x, v): x not in prev_opts, options)
+
+            # Original Python 2 version
+            #options = filter(lambda (x, v): x not in prev_opts, options)
+            # Python 3 version?
+            #options = filter(lambda x_v: x_v[0] not in prev_opts, options)
+            options = [opt for opt in options if opt[0] not in prev_opts]
 
             # filter options by current input
             options = sorted([(k, v) for k, v in \
@@ -318,7 +327,7 @@ class ManagementUtility(object):
                 # append '=' to options which require args
                 if option[1]:
                     opt_label += '='
-                print opt_label
+                print(opt_label)
         sys.exit(1)
 
     def execute(self):
@@ -782,7 +791,7 @@ def colorize(text='', opts=(), **kwargs):
     code_list = []
     if text == '' and len(opts) == 1 and opts[0] == 'reset':
         return '\x1b[%sm' % RESET
-    for k, value in kwargs.iteritems():
+    for k, value in six.iteritems(kwargs):
         if k == 'fg':
             code_list.append(FOREGROUND[value])
         elif k == 'bg':
