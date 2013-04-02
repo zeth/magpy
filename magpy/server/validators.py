@@ -5,7 +5,15 @@ import six
 # Import half of the friggin stdlib :)
 import platform
 import re
+import operator
+import types
+import datetime
+from decimal import Decimal
+import xml.parsers.expat
+from numbers import Number
+from functools import reduce
 
+# Now we try to survive Python 3
 try:
     # Python 2
     from urllib2 import Request, OpenerDirector, \
@@ -21,13 +29,15 @@ except ImportError:
         HTTPDefaultErrorHandler, FTPHandler, HTTPSHandler
     from urllib.parse import quote, urlsplit, urlunsplit
 
-import operator
-import types
-import datetime
-from decimal import Decimal
-import xml.parsers.expat
-from numbers import Number
-from functools import reduce
+
+# Quick hack for Python 3
+# TODO: replace this
+try:
+    basestring
+    unicode
+except NameError:
+    basestring = (str, bytes)
+    unicode = str
 
 
 def validate_model_instance(model,
@@ -426,13 +436,6 @@ class RegexValidator(object):
             self.message = message
         if code is not None:
             self.code = code
-
-        # Quick hack for Python 3
-        # TODO: replace this
-        try:
-            basestring
-        except NameError:
-            basestring = (str, bytes)
 
         # Compile the regex if it was not passed pre-compiled.
         if isinstance(self.regex, basestring):
