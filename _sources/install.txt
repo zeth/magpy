@@ -57,6 +57,14 @@ To use Magpy's test framework to test your apps, you need to install PyV8_::
 
 You will only need this on your development machine, it is not required on your deployment server. 
 
+.. note:: Build System
+
+    The install of pyv8 assumes you have a C++ build system setup with make, GCC and all the rest.
+
+    On Ubuntu, you can do::
+
+        sudo apt-get install python-dev build-essential subversion
+
 .. _MongoDB: http://www.mongodb.org/
 .. _Motor: http://motor.readthedocs.org
 .. _Nginx: http://nginx.org/
