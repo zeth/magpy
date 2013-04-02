@@ -1,11 +1,13 @@
 """Tests for Magpy."""
 
 import unittest
-from javascript import JavaScriptTestCase
+from magpy.tests.javascript import JavaScriptTestCase
 from magpy.server.instances import InstanceLoader
 from magpy.tests.test_ravenjs import open_test_collection
+import six
 
-RAVEN = "/srv/vmr/web/static/frontend/js/raven.js"
+# TODO get rid of this old location.
+MAGJS = RAVEN = "/srv/vmr/web/static/frontend/js/raven.js"
 
 # pylint: disable=R0904
 
@@ -17,7 +19,7 @@ class RavenTestCase(JavaScriptTestCase):
         self.load(RAVEN)
         self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
 
-from test_validators import EMBEDDED_MODELS, TEST_ARTICLE
+from magpy.tests.test_validators import EMBEDDED_MODELS, TEST_ARTICLE
 from magpy.server.database import Database
 
 
@@ -39,7 +41,7 @@ class RavenEmbedTestCase(RavenTestCase):
         instance_loader = InstanceLoader(
             database='test',
             validation=False)
-        instance_loader.add_instances(tuple(EMBEDDED_MODELS.itervalues()))
+        instance_loader.add_instances(tuple(six.itervalues(EMBEDDED_MODELS)))
 
         # Kill any test existing instances
         database = Database(database_name='test')

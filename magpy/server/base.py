@@ -4,6 +4,8 @@ All the boilerplate we don't care so much about.
 
 # pylint: disable=W0404
 
+from __future__ import print_function
+
 import tornado.web
 import tornado.httpserver
 import tornado.ioloop
@@ -40,5 +42,5 @@ def main(handlers, cookie_secret=None, port=8000):
     ioloop.start()
 
 if __name__ == '__main__':
-    print "To run the server type:\n" \
-        "mag.py run"
+    print ("To run the server type:\n"
+           "mag.py run")

@@ -1,4 +1,5 @@
 """Find all URLs in apps and load them."""
+from __future__ import print_function
 
 import importlib
 from magpy.server.database import Database
@@ -24,8 +25,8 @@ class URLLoader(object):
             try:
                 url_module = importlib.import_module(url_path)
             except:
-                print "Cannot import: %s" % url_path
-                print "Skipping app: %s" % app
+                print("Cannot import: %s" % url_path)
+                print("Skipping app: %s" % app)
             else:
                 urls.extend(getattr(url_module, 'URLS', []))
         return urls

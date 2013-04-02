@@ -37,5 +37,5 @@ setup(name='Magpy',
                     'magpy.conf.app_template.app_name': ['static/index.html'],
                     'magpy': ['static/js/mag.js'],
                     },
-      install_requires=['motor'],
+      install_requires=['motor', 'six'],
      )

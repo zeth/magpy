@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 from functools import partial
 from magpy.server.database import DatabaseMixin
 from magpy.server.utils import dejsonify
+import six
 
 # pylint: disable=R0904,W0613,R0913
 
@@ -204,7 +205,7 @@ class AuthenticationMixin(object):
         stored_permissions = self._overlay_permissions(models, user, groups)
         missing_permissions = {}
 
-        for resource, perm_list in permissions.iteritems():
+        for resource, perm_list in six.iteritems(permissions):
             for perm in perm_list:
                 if not stored_permissions[resource][perm]:
                     if resource in missing_permissions:

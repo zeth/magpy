@@ -1,4 +1,5 @@
-"""Validation code, much of it forked from Django."""
+"""Validation code, much of it originally forked from Django."""
+from __future__ import print_function
 
 # Import half of the friggin stdlib
 import platform
@@ -12,6 +13,8 @@ import datetime
 from decimal import Decimal
 import xml.parsers.expat
 from numbers import Number
+from functools import reduce
+import six
 
 
 def validate_model_instance(model,
@@ -51,7 +54,7 @@ def validate_model_instance(model,
 
 def parse_instance(instance, result_set):
     """Add the models that an instance uses to result_set."""
-    for key, value in instance.iteritems():
+    for key, value in six.iteritems(instance):
         if key == '_model':
             result_set.add(value)
         if isinstance(value, dict):
@@ -187,8 +190,8 @@ class ModelValidator(object):
                                             instance[field]) for \
                             field in instance_keys]
         except TypeError:
-            print "Died on %s " % instance['_id']
-            print "Perhaps invalid model?"
+            print("Died on %s " % instance['_id'])
+            print("Perhaps invalid model?")
             raise
 
         # If they are all valid, then do nothing
@@ -223,9 +226,9 @@ class ModelValidator(object):
                     raise MissingFields(tuple(awol))
 
     def validate_modification(self, model, modification):
-        for modification_name, modification_value in modification.iteritems():
+        for modification_name, modification_value in six.iteritems(modification):
             validator = MODIFICATION_DISPATCHER[modification_name]
-            for tfield, value in modification_value.iteritems():
+            for tfield, value in six.iteritems(modification_value):
                 field, field_type = self.get_field(tfield, model)
                 validator(self, model, field, field_type, value)
 
@@ -256,9 +259,9 @@ def get_all_modification_modelnames(model, modification):
     """Get all model names from a modification."""
     models = set()
     tree = []
-    for modification_type, field in modification.iteritems():
+    for modification_type, field in six.iteritems(modification):
         tree.append(field)
-        for fieldname, fieldvalue in field.iteritems():
+        for fieldname, fieldvalue in six.iteritems(field):
             tree.append(fieldname)
             if '.' in fieldname:
                 parts = fieldname.split('.')
@@ -478,6 +481,9 @@ class URLValidator(RegexValidator):
     (which will hold the response in memory) to grow without bound,
     thus consuming not only server processes but also server memory.
 
+    Note, Python 2.5 is not actually supported by Magpy because of the
+    Python 3 compatibility.
+
     For Python versions 2.6 and above, which support setting a timeout,
     a timeout of ten seconds will be set;
 
@@ -574,7 +580,7 @@ class URLValidator(RegexValidator):
                     pass
                 else:
                     handlers.append(urllib2.HTTPSHandler())
-                map(opener.add_handler, handlers)
+                list(map(opener.add_handler, handlers))
                 if platform.python_version_tuple() >= (2, 6):
                     opener.open(req, timeout=10)
                 else:
@@ -593,7 +599,7 @@ class EmailValidator(RegexValidator):
     def __call__(self, value):
         try:
             super(EmailValidator, self).__call__(value)
-        except ValidationError, excptn:
+        except ValidationError as excptn:
             # Trivial case failed. Try for possible IDN domain-part
             if value and u'@' in value:
                 parts = value.split(u'@')
@@ -790,7 +796,7 @@ def smart_str(stringy_thingy,
     semantics from Python's builtin str() function,
     but the difference can be useful.
     """
-    if strings_only and isinstance(stringy_thingy, (types.NoneType, int)):
+    if strings_only and isinstance(stringy_thingy, (type(None), int)):
         return stringy_thingy
     if not isinstance(stringy_thingy, basestring):
         try:
@@ -818,7 +824,7 @@ def is_protected_type(obj):
     force_unicode(strings_only=True).
     """
     return isinstance(obj, (
-        types.NoneType,
+        type(None),
         int, long,
         datetime.datetime, datetime.date, datetime.time,
         float, Decimal)
@@ -882,7 +888,7 @@ def force_unicode(stringy_thingy,
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.
             stringy_thingy = stringy_thingy.decode(encoding, errors)
-    except UnicodeDecodeError, excptn:
+    except UnicodeDecodeError as excptn:
         if not isinstance(stringy_thingy, Exception):
             raise WrappedUnicodeDecodeError(stringy_thingy, *excptn.args)
         else:
@@ -1137,7 +1143,7 @@ def _explode_shorthand_ip_string(ip_str):
         sep = len(hextet[0].split(':')) + len(hextet[1].split(':'))
         new_ip = hextet[0].split(':')
 
-        for _ in xrange(fill_to - sep):
+        for _ in range(fill_to - sep):
             new_ip.append('0000')
         new_ip += hextet[1].split(':')
 
@@ -1164,7 +1170,7 @@ def _is_shorthand_ip(ip_str):
     """
     if ip_str.count('::') == 1:
         return True
-    if filter(lambda x: len(x) < 4, ip_str.split(':')):
+    if list(filter(lambda x: len(x) < 4, ip_str.split(':'))):
         return True
     return False
 
@@ -1235,7 +1241,7 @@ def validate_integer(value):
 def validate_nullboolean(data):
     """If the data is True or False or None."""
     if not isinstance(data, bool):
-        if not isinstance(data, types.NoneType):
+        if not isinstance(data, type(None)):
             raise ValidationError("Not a nullboolean.")
 
 

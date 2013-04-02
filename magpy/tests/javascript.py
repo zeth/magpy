@@ -22,6 +22,7 @@ Like all good software, this library is written like an onion,
 keeping peeling off the layers until you find the right level of
 abstraction for your need.
 """
+from __future__ import print_function
 
 import sys
 import traceback
@@ -142,9 +143,9 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
         try:
             self.session.load_file(line)
         except IOError:
-            print sys.exc_info()[1]
+            print(sys.exc_info()[1])
         except:
-            print traceback.format_exc()
+            print(traceback.format_exc())
 
     def do_special(self, line):
         """Load a file from existing file list."""
@@ -152,15 +153,15 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
             special = self.specials[line]
 
         except KeyError:
-            print "Does Not Exist"
-            print "Today's specials are:"
-            print ', '.join(self.specials.keys())
+            print("Does Not Exist")
+            print("Today's specials are:")
+            print(', '.join(self.specials.keys()))
 
         else:
             self.do_load(special)
 
     def postloop(self):
-        print
+        print()
 
     def do_prompt(self, line):
         "Change the interactive prompt"
@@ -173,9 +174,9 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
 
     def default(self, line):
         try:
-            print self.session.context.eval(line)
+            print(self.session.context.eval(line))
         except:
-            print traceback.format_exc()  # pylint: disable=W0702
+            print(traceback.format_exc())  # pylint: disable=W0702
 
 ### Fake web browser objects ###
 
@@ -336,9 +337,9 @@ class Console(object):
         """Write a message or an object to the console."""
         obj = convert(lobject)
         if lobject != obj:
-            print lobject, obj
+            print(lobject, obj)
         else:
-            print lobject
+            print(lobject)
 
     @staticmethod
     def dir(lobject):
@@ -352,7 +353,7 @@ class Console(object):
         For now, this is mostly useful for helping to understand
         the abstraction, for example, when writing unit tests.
         """
-        print dir(lobject)
+        print(dir(lobject))
 
 COMPAT = """
 //** Make the serverside environment suitable for testing client side code. */

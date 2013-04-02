@@ -1,4 +1,11 @@
 """Load models from an app."""
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
 from magpy.server.instances import InstanceLoader
 from magpy.management import BaseCommand, CommandError
 import importlib
@@ -30,30 +37,30 @@ class Command(BaseCommand):
 
         instanceloader = InstanceLoader(validation=False)
         instanceloader.add_instances(models)
-        print ""
+        print("")
 
     def validate_model(self, model, index, module_name):
         """Check each model for basic sanity."""
         if not '_id' in model:
-            print "Error: All models must have an id."
+            print("Error: All models must have an id.")
             self._abort(index, module_name)
 
         if not '_model' in model:
-            print "Error: All models must have a '_model' key."
+            print("Error: All models must have a '_model' key.")
             self._abort(index, module_name)
 
         if model['_model'] != '_model':
-            print "Error: All models must the '_model' key set to '_model'."
+            print("Error: All models must the '_model' key set to '_model'.")
             self._abort(index, module_name)
 
         if not 'modeldescription' in model:
-            print "Warning: Model %s in %s does not have a " \
-                "'modeldescription' key" % (index, module_name)
-            print "Warning: Apps which assume a modeldescription may break."
+            print("Warning: Model %s in %s does not have a " \
+                "'modeldescription' key" % (index, module_name))
+            print("Warning: Apps which assume a modeldescription may break.")
 
     @staticmethod
     def _abort(index, module_name):
         """Abort due to invalid model."""
-        print "Aborting. No changes made."
+        print("Aborting. No changes made.")
         raise CommandError("Model %s in %s is not valid" % (
                 index, module_name))
