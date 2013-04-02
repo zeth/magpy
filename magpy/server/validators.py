@@ -427,6 +427,13 @@ class RegexValidator(object):
         if code is not None:
             self.code = code
 
+        # Quick hack for Python 3
+        # TODO: replace this
+        try:
+            basestring
+        except NameError:
+            basestring = (str, bytes)
+
         # Compile the regex if it was not passed pre-compiled.
         if isinstance(self.regex, basestring):
             self.regex = re.compile(self.regex)
