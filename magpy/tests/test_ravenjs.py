@@ -5,7 +5,7 @@ import unittest
 import json
 from javascript import JavaScriptTestCase
 from pymongo import Connection
-from magpy.management.managep import Management
+from magpy.server.instances import InstanceLoader
 from magpy.server.database import Database
 
 RAVEN = "/srv/vmr/web/static/frontend/js/raven.js"
@@ -400,8 +400,10 @@ class RavenRestTestCase(RavenTestCase):
         super(RavenRestTestCase, self).setUp()
 
         # Create a new test model
-        manager = Management(database_name='test')
-        manager.sync(MOCK_MODELS)
+        instance_loader = InstanceLoader(
+            database='test',
+            validation=False)
+        instance_loader.add_instances(MOCK_MODELS)
 
         # Kill any test existing instances
         self.collection = open_test_collection()
@@ -750,8 +752,11 @@ class TestEmbedModificationValidation(RavenTestCase):
         super(TestEmbedModificationValidation, self).setUp()
 
         # Create a new test model
-        manager = Management(database_name='test')
-        manager.sync(EMBEDDED_MODELS.itervalues())
+        # Create a new test model
+        instance_loader = InstanceLoader(
+            database='test',
+            validation=False)
+        instance_loader.add_instances(EMBEDDED_MODELS.itervalues())
         # Kill any test existing instances
         database = Database(database_name='test')
         self.collection = database.get_collection('article')
@@ -871,8 +876,10 @@ class TestEmbedModificationValidationB(RavenTestCase):
         super(TestEmbedModificationValidationB, self).setUp()
 
         # Create a new test model
-        manager = Management(database_name='test')
-        manager.sync(EMBEDDED_MODELS_B.itervalues())
+        instance_loader = InstanceLoader(
+            database='test',
+            validation=False)
+        instance_loader.add_instances(EMBEDDED_MODELS_B.itervalues())
         # Kill any test existing instances
         database = Database(database_name='test')
         self.collection = database.get_collection('article')
