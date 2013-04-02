@@ -1,12 +1,26 @@
 """Validation code, much of it originally forked from Django."""
 from __future__ import print_function
+import six
 
-# Import half of the friggin stdlib
+# Import half of the friggin stdlib :)
 import platform
 import re
-import urllib
-import urllib2
-import urlparse
+
+try:
+    # Python 2
+    from urllib2 import Request, OpenerDirector, \
+        HTTPErrorProcessor, UnknownHandler, HTTPHandler, \
+        HTTPDefaultErrorHandler, FTPHandler, HTTPSHandler
+    from urllib import quote
+    from urlparse import urlsplit, urlunsplit
+
+except ImportError:
+    # Python 3
+    from urllib.request import Request, OpenerDirector, \
+        HTTPErrorProcessor, UnknownHandler, HTTPHandler, \
+        HTTPDefaultErrorHandler, FTPHandler, HTTPSHandler
+    from urllib.parse import quote, urlsplit, urlunsplit
+
 import operator
 import types
 import datetime
@@ -14,7 +28,6 @@ from decimal import Decimal
 import xml.parsers.expat
 from numbers import Number
 from functools import reduce
-import six
 
 
 def validate_model_instance(model,
@@ -226,7 +239,8 @@ class ModelValidator(object):
                     raise MissingFields(tuple(awol))
 
     def validate_modification(self, model, modification):
-        for modification_name, modification_value in six.iteritems(modification):
+        for modification_name, \
+                modification_value in six.iteritems(modification):
             validator = MODIFICATION_DISPATCHER[modification_name]
             for tfield, value in six.iteritems(modification_value):
                 field, field_type = self.get_field(tfield, model)
@@ -517,16 +531,16 @@ class URLValidator(RegexValidator):
                     netloc, \
                     path, \
                     query, \
-                    fragment = urlparse.urlsplit(value)
+                    fragment = urlsplit(value)
                 try:
                     netloc = netloc.encode('idna')  # IDN -> ACE
                 except UnicodeError:  # invalid domain part
                     raise excptn
-                url = urlparse.urlunsplit((scheme,
-                                           netloc,
-                                           path,
-                                           query,
-                                           fragment))
+                url = urlunsplit((scheme,
+                                  netloc,
+                                  path,
+                                  query,
+                                  fragment))
                 super(URLValidator, self).__call__(url)
             else:
                 raise
@@ -551,27 +565,27 @@ class URLValidator(RegexValidator):
             }
             url = url.encode('utf-8')
             # Quote characters from the unreserved set, refs #16812
-            url = urllib.quote(url, "!*'();:@&=+$,/?#[]")
+            url = quote(url, "!*'();:@&=+$,/?#[]")
             broken_error = ValidationError(
                 u'This URL appears to be a broken link.',
                 code='invalid_link')
             try:
-                req = urllib2.Request(url, None, headers)
+                req = Request(url, None, headers)
                 req.get_method = lambda: 'HEAD'
                 #Create an opener that does not support local file access
-                opener = urllib2.OpenerDirector()
+                opener = OpenerDirector()
 
                 #Don't follow redirects, but don't treat them as errors either
                 error_nop = lambda *args, **kwargs: True
-                http_error_processor = urllib2.HTTPErrorProcessor()
+                http_error_processor = HTTPErrorProcessor()
                 http_error_processor.http_error_301 = error_nop
                 http_error_processor.http_error_302 = error_nop
                 http_error_processor.http_error_307 = error_nop
 
-                handlers = [urllib2.UnknownHandler(),
-                            urllib2.HTTPHandler(),
-                            urllib2.HTTPDefaultErrorHandler(),
-                            urllib2.FTPHandler(),
+                handlers = [UnknownHandler(),
+                            HTTPHandler(),
+                            HTTPDefaultErrorHandler(),
+                            FTPHandler(),
                             http_error_processor]
                 try:
                     import ssl
@@ -579,7 +593,7 @@ class URLValidator(RegexValidator):
                     # Python isn't compiled with SSL support
                     pass
                 else:
-                    handlers.append(urllib2.HTTPSHandler())
+                    handlers.append(HTTPSHandler())
                 list(map(opener.add_handler, handlers))
                 if platform.python_version_tuple() >= (2, 6):
                     opener.open(req, timeout=10)
