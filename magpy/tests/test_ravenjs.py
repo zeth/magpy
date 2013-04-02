@@ -1,16 +1,16 @@
 """Tests for Magpy."""
 from __future__ import print_function
 
+import os
 import time
 import unittest
 import json
+from pkgutil import get_loader
 from magpy.tests.javascript import JavaScriptTestCase
 from pymongo import Connection
 from magpy.server.instances import InstanceLoader
 from magpy.server.database import Database
 import six
-
-RAVEN = "/srv/vmr/web/static/frontend/js/raven.js"
 
 # pylint: disable=R0904
 
@@ -19,7 +19,9 @@ class RavenTestCase(JavaScriptTestCase):
     """Load the Raven file into the session."""
     def setUp(self):  # pylint: disable=C0103
         super(RavenTestCase, self).setUp()
-        self.load(RAVEN)
+        magpy_loader = get_loader('magpy')
+        magjs = os.path.join(magpy_loader.filename, 'static/js/mag.js')
+        self.load(magjs)
         self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
 
 

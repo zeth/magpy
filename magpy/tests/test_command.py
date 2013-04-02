@@ -4,7 +4,7 @@ import unittest
 from magpy.tests.javascript import JavaScriptTestCase
 from magpy.server.instances import InstanceLoader
 from magpy.tests.test_ravenjs import MOCK_MODELS, RavenTestCase, \
-    RAVEN, open_test_collection
+    open_test_collection
 
 # pylint: disable=R0904
 

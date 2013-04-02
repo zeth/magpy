@@ -24,19 +24,14 @@ abstraction for your need.
 """
 from __future__ import print_function
 
+import os
 import sys
 import traceback
 import cmd
 import unittest
+from pkgutil import get_loader
+
 import PyV8
-
-STATIC_LOCATION = '/srv/vmr/web/static/'
-FRONTEND_LOCATION = STATIC_LOCATION + 'frontend/js/'
-
-DEFAULT_SPECIALS = {
-    "raven": FRONTEND_LOCATION + 'raven.js',
-    "domcore": "/srv/vmr/raven/tests/domcore.js"
-    }
 
 
 class JavaScriptTestCase(unittest.TestCase):  # pylint: disable=R0904
@@ -123,7 +118,12 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
             self.specials = kwargs['specials']
             del kwargs['specials']
         else:
-            self.specials = DEFAULT_SPECIALS
+            magpy_loader = get_loader('magpy')
+            magpy_path = magpy_loader.filename
+
+            self.specials = {
+                "raven": os.path.join(magpy_path, 'static/js/mag.js'),
+                "domcore": os.path.join(magpy_path, 'tests/js/domcore.js')}
 
         cmd.Cmd.__init__(self, *args, **kwargs)
         self.count = 1
