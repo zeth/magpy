@@ -180,8 +180,11 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
 
 ### Fake web browser objects ###
 
-from urllib2 import Request, urlopen
-
+try:
+    # Python 2
+    from urllib2 import Request, urlopen
+except:
+    from urllib.request import Request, urlopen
 
 class RequestWithMethod(Request):
     """Subclass Request to allow PUT, DELETE and HEAD
