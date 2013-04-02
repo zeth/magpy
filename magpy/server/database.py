@@ -1,5 +1,7 @@
 """Database access."""
 
+from __future__ import print_function
+
 from copy import deepcopy
 from functools import partial
 
@@ -27,10 +29,10 @@ class Database(object):
         try:
             self.connection = Connection(tz_aware=True)
         except ConnectionFailure:
-            print "Could not connect to MongoDB database."
-            print "Are you sure it is installed and is running?"
-            print "The exception is shown below."
-            print ""
+            print("Could not connect to MongoDB database.")
+            print("Are you sure it is installed and is running?")
+            print("The exception is shown below.")
+            print("")
 
             raise
         if not database_name:
@@ -103,7 +105,7 @@ class Database(object):
             settings = self.get_collection('_settings')
             settings.save(category_instance)
         else:
-            print "Already set, skipping."
+            print("Already set, skipping.")
 
     def remove_list_setting(self, category, setting, value):
         """Add a value to a list setting."""
@@ -362,7 +364,7 @@ class ValidationMixin(object):
             validate_model_instance(model,
                                     instance,
                                     embedded_models=embedded_models)
-        except MissingFields, fields:
+        except MissingFields as fields:
             raise tornado.web.HTTPError(400, "Missing Fields %s" % fields)
         except ValidationError:
             raise tornado.web.HTTPError(400, "Validation Error")

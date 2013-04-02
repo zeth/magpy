@@ -1,4 +1,5 @@
 """Show all URLs from the installed apps."""
+from __future__ import print_function
 
 import importlib
 from magpy.management import BaseCommand, CommandError
@@ -25,4 +26,4 @@ class Command(BaseCommand):
                 else:
                     urls.extend(getattr(url_module, 'URLS', []))
         for url in urls:
-            print url
+            print(url)

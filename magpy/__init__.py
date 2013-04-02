@@ -13,4 +13,4 @@ def get_version():
     Also note this PEP about version numbering:
     http://www.python.org/dev/peps/pep-0386/
     """
-    return '0.2'
+    return u'0.2'

@@ -1,7 +1,7 @@
 """Tests for Advanced REST commands."""
 
 import unittest
-from javascript import JavaScriptTestCase
+from magpy.tests.javascript import JavaScriptTestCase
 from magpy.server.instances import InstanceLoader
 from magpy.tests.test_ravenjs import MOCK_MODELS, RavenTestCase, \
     RAVEN, open_test_collection

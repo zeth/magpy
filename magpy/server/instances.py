@@ -1,5 +1,7 @@
 """Load an instance on the server side."""
 
+from __future__ import print_function
+
 from magpy.server.database import Database
 from magpy.server.validators import validate_model_instance, ValidationError
 import sys
@@ -32,8 +34,8 @@ class InstanceLoader(object):
                                         instance,
                                         handle_none=self.handle_none)
             except ValidationError:
-                print "Died on instance:"
-                print instance
+                print("Died on instance:")
+                print(instance)
                 raise
         # We got this far, yay!
         instance_collection = self.database.get_collection(instance['_model'])

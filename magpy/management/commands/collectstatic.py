@@ -7,6 +7,7 @@ from magpy.management import BaseCommand, CommandError
 from optparse import make_option
 #from tempfile import mkdtemp
 from shutil import copy
+from six.moves import filter
 
 
 class Command(BaseCommand):
