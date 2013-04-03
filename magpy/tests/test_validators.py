@@ -17,11 +17,13 @@ from magpy.server.validators import validate_integer, ValidationError, \
     validate_model_instance, parse_instance, validate_list, \
     validate_embedded_list, validate_xml, smart_unicode, smart_str, \
     WrappedUnicodeDecodeError, is_valid_ipv6_address, clean_ipv6_address, \
-    validate_long, validate_char, validate_date, validate_datetime, \
+    validate_char, validate_date, validate_datetime, \
     validate_float, validate_nullboolean, validate_postiveinteger, \
     validate_smallinteger, validate_biginteger, \
     validate_positivesmallinteger, validate_text, validate_time, \
     validate_bool, validate_decimal, validate_modification, ValidationError
+    # validate_long
+
 
 # pylint: disable=R0904,R0903,W0232
 
@@ -206,9 +208,9 @@ class TestSimpleValidators(TestCase):
         self.assertEqual(validate_xml('<p>Hello World</p>'), None)
         self.assertRaises(ValidationError, validate_xml, '<p></td>')
 
-    def test_validate_long(self):
-        self.assertEqual(validate_long(100), None)
-        self.assertRaises(ValidationError, validate_long, "I am a string")
+    #def test_validate_long(self):
+    #    self.assertEqual(validate_long(100), None)
+    #    self.assertRaises(ValidationError, validate_long, "I am a string")
 
     def test_validate_char(self):
         self.assertEqual(validate_char("Hello World"), None)
