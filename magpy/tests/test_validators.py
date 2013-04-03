@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tests for validators.py."""
 
+import six
+
 import re
 import datetime
 from decimal import Decimal
 from unittest import TestCase, main
-
 
 from magpy.server.validators import validate_integer, ValidationError, \
     validate_email, validate_slug, validate_ipv4_address, \
@@ -43,11 +44,19 @@ class TestSimpleValidators(TestCase):
     def test_message_list(self):
         """Test a list of messages."""
         validity = ValidationError(['First Problem', 'Second Problem'])
-        self.assertEqual(str(validity),
-                         "[u'First Problem', u'Second Problem']")
-        self.assertEqual(
-            repr(validity),
-            "ValidationError([u'First Problem', u'Second Problem'])")
+        if six.PY3:
+            self.assertEqual(str(validity),
+                             "['First Problem', 'Second Problem']")
+            self.assertEqual(
+                repr(validity),
+                "ValidationError(['First Problem', 'Second Problem'])")
+
+        else:
+            self.assertEqual(str(validity),
+                             "[u'First Problem', u'Second Problem']")
+            self.assertEqual(
+                repr(validity),
+                "ValidationError([u'First Problem', u'Second Problem'])")
 
     def test_message_dict(self):
         """Test the message dict."""
