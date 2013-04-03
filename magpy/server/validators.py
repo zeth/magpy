@@ -603,39 +603,54 @@ class URLValidator(RegexValidator):
                 raise broken_error
 
 
-class EmailValidator(RegexValidator):
-    """
-    A RegexValidator instance that ensures a value looks like an email address.
-    """
+class EmailValidator(object):
+    message = 'Enter a valid email address.'
+    code = 'invalid'
+    user_regex = re.compile(
+        r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
+        r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*"$)', # quoted-string
+        re.IGNORECASE)
+    domain_regex = re.compile(
+        r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)'  # domain
+        # literal form, ipv4 address (SMTP 4.1.3)
+        r'|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$',
+        re.IGNORECASE)
+    domain_whitelist = ['localhost']
+
+    def __init__(self, message=None, code=None, whitelist=None):
+        if message is not None:
+            self.message = message
+        if code is not None:
+            self.code = code
+        if whitelist is not None:
+            self.domain_whitelist = whitelist
 
     def __call__(self, value):
-        try:
-            super(EmailValidator, self).__call__(value)
-        except ValidationError as excptn:
-            # Trivial case failed. Try for possible IDN domain-part
-            if value and u'@' in value:
-                parts = value.split(u'@')
-                try:
-                    parts[-1] = parts[-1].encode('idna')
-                except UnicodeError:
-                    raise excptn
-                super(EmailValidator, self).__call__(u'@'.join(parts))
-            else:
-                raise
+        value = force_unicode(value)
 
-EMAIL_RE = re.compile(
-    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+"
-    r"(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-    # quoted-string, see also http://tools.ietf.org/html/rfc2822#section-3.2.5
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|'
-    r'\\[\001-\011\013\014\016-\177])*"'
-    r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$)'  # domain
-    r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-    r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$',
-    re.IGNORECASE)  # literal form, ipv4 address (SMTP 4.1.3)
-validate_email = EmailValidator(EMAIL_RE,
-                                u'Enter a valid e-mail address.',
-                                'invalid')
+        if not value or '@' not in value:
+            raise ValidationError(self.message, code=self.code)
+
+        user_part, domain_part = value.rsplit('@', 1)
+
+        if not self.user_regex.match(user_part):
+            raise ValidationError(self.message, code=self.code)
+
+        if (not domain_part in self.domain_whitelist and
+                not self.domain_regex.match(domain_part)):
+            # Try for possible IDN domain-part
+            try:
+                domain_part = domain_part.encode('idna').decode('ascii')
+                if not self.domain_regex.match(domain_part):
+                    raise ValidationError(self.message, code=self.code)
+                else:
+                    return
+            except UnicodeError:
+                pass
+            raise ValidationError(self.message, code=self.code)
+
+validate_email = EmailValidator()
+
 
 slug_re = re.compile(r'^[-\w]+$')
 validate_slug = RegexValidator(
