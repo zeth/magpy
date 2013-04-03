@@ -29,9 +29,12 @@ import sys
 import traceback
 import cmd
 import unittest
-from pkgutil import get_loader
 
 import PyV8
+
+from magpy.server.utils import get_mag_path
+
+
 
 
 class JavaScriptTestCase(unittest.TestCase):  # pylint: disable=R0904
@@ -118,9 +121,7 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
             self.specials = kwargs['specials']
             del kwargs['specials']
         else:
-            magpy_loader = get_loader('magpy')
-            magpy_path = magpy_loader.filename
-
+            magpy_path = get_mag_path()
             self.specials = {
                 "raven": os.path.join(magpy_path, 'static/js/mag.js'),
                 "domcore": os.path.join(magpy_path, 'tests/js/domcore.js')}
