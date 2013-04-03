@@ -1201,13 +1201,14 @@ def validate_bool(data):
         raise ValidationError("Not a bool.")
 
 
-def validate_long(data):
-    """If the data is (or can become) a long
-    i.e. a 64 bit integer."""
-    try:
-        long(data)
-    except (ValueError, TypeError):
-        raise ValidationError('Not a long')
+# Long does not exist anymore in Python3, int is now long.
+#def validate_long(data):
+#    """If the data is (or can become) a long
+#    i.e. a 64 bit integer."""
+#    try:
+#        long(data)
+#    except (ValueError, TypeError):
+#        raise ValidationError('Not a long')
 
 
 def validate_char(data):
@@ -1506,7 +1507,7 @@ DISPATCHER = (
     ('IP4Address', validate_ipv4_address),
     ('IP6Address', validate_ipv6_address),
     ('List', validate_list),
-    ('LongInteger', validate_long),
+    #('LongInteger', validate_long),
     ('NullBoolean', validate_nullboolean),
     ('PositiveInteger', validate_postiveinteger),
     ('PositiveSmallInteger', validate_positivesmallinteger),
