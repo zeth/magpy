@@ -510,7 +510,8 @@ class URLValidator(RegexValidator):
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)'
         r'+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
         r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
         r'(?::\d+)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
@@ -520,20 +521,17 @@ class URLValidator(RegexValidator):
         self.verify_exists = verify_exists
         self.user_agent = validator_user_agent
 
+
     def __call__(self, value):
         try:
             super(URLValidator, self).__call__(value)
         except ValidationError as excptn:
             # Trivial case failed. Try for possible IDN domain
             if value:
-                value = smart_unicode(value)
-                scheme, \
-                    netloc, \
-                    path, \
-                    query, \
-                    fragment = urlsplit(value)
+                value = force_unicode(value)
+                scheme, netloc, path, query, fragment = urlsplit(value)
                 try:
-                    netloc = netloc.encode('idna')  # IDN -> ACE
+                    netloc = netloc.encode('idna').decode('ascii')  # IDN -> ACE
                 except UnicodeError:  # invalid domain part
                     raise excptn
                 url = urlunsplit((scheme,
