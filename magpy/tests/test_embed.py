@@ -2,7 +2,7 @@
 
 import unittest
 from javascript import JavaScriptTestCase
-from magpy.management.managep import Management
+from magpy.server.instances import InstanceLoader
 from magpy.tests.test_ravenjs import open_test_collection
 
 RAVEN = "/srv/vmr/web/static/frontend/js/raven.js"
@@ -36,8 +36,10 @@ class RavenEmbedTestCase(RavenTestCase):
             'delete': True,
             }
 
-        manager = Management(database_name='test')
-        manager.sync(tuple(EMBEDDED_MODELS.itervalues()))
+        instance_loader = InstanceLoader(
+            database='test',
+            validation=False)
+        instance_loader.add_instances(tuple(EMBEDDED_MODELS.itervalues()))
 
         # Kill any test existing instances
         database = Database(database_name='test')

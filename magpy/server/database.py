@@ -13,6 +13,7 @@ from magpy.server.validators import validate_model_instance, \
     get_all_modification_modelnames
 
 from magpy.server.utils import instance_list_to_dict
+from pymongo.errors import ConnectionFailure
 
 DEFAULT_DATABASE = 'vmr'
 TEST_DATABASE = 'test'
@@ -23,7 +24,15 @@ class Database(object):
     def __init__(self,
                  async=False,
                  database_name=None):
-        self.connection = Connection(tz_aware=True)
+        try:
+            self.connection = Connection(tz_aware=True)
+        except ConnectionFailure:
+            print "Could not connect to MongoDB database."
+            print "Are you sure it is installed and is running?"
+            print "The exception is shown below."
+            print ""
+
+            raise
         if not database_name:
             database_name = DEFAULT_DATABASE
 

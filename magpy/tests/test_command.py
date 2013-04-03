@@ -2,7 +2,7 @@
 
 import unittest
 from javascript import JavaScriptTestCase
-from magpy.management.managep import Management
+from magpy.server.instances import InstanceLoader
 from magpy.tests.test_ravenjs import MOCK_MODELS, RavenTestCase, \
     RAVEN, open_test_collection
 
@@ -19,8 +19,10 @@ class RavenCommandTestCase(RavenTestCase):
         super(RavenCommandTestCase, self).setUp()
 
         # Create a new test model
-        manager = Management(database_name='test')
-        manager.sync(MOCK_MODELS)
+        instance_loader = InstanceLoader(
+            database='test',
+            validation=False)
+        instance_loader.add_instances(MOCK_MODELS)
 
         # Kill any test existing instances
         self.collection = open_test_collection()
