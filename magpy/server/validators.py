@@ -3,7 +3,6 @@ from __future__ import print_function
 import six
 
 # Import half of the friggin stdlib :)
-import platform
 import re
 import operator
 import types
@@ -593,10 +592,9 @@ class URLValidator(RegexValidator):
                 else:
                     handlers.append(HTTPSHandler())
                 list(map(opener.add_handler, handlers))
-                if platform.python_version_tuple() >= (2, 6):
-                    opener.open(req, timeout=10)
-                else:
-                    opener.open(req)
+
+                opener.open(req, timeout=10)
+
             except ValueError:
                 raise ValidationError(u'Enter a valid URL.', code='invalid')
             except:  # urllib2.URLError, httplib.InvalidURL, etc.
