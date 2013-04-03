@@ -112,14 +112,17 @@ class TestSimpleValidators(TestCase):
 
     def test_smart_str(self):
         """Test the smart_str function."""
+        if six.PY3:
+            result = b'\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
+        else:
+            result = '\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
+
         self.assertEqual(
             smart_str('ŠĐĆŽćžšđ'),
-            '\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
-            )
+            result)
         self.assertEqual(
             smart_str(u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111'),
-            '\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
-            )
+            result)
 
         self.assertEqual(
             smart_str(Exception(u'Ryökäle')), 'Ry\xc3\xb6k\xc3\xa4le')
