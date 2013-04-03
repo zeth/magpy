@@ -823,7 +823,7 @@ def smart_str(stringy_thingy,
                 return ' '.join([smart_str(arg, encoding, strings_only,
                         errors) for arg in stringy_thingy])
             return unicode(stringy_thingy).encode(encoding, errors)
-    elif isinstance(stringy_thingy, unicode):
+    elif isinstance(stringy_thingy, six.text_type):
         return stringy_thingy.encode(encoding, errors)
     elif stringy_thingy and encoding != 'utf-8':
         return stringy_thingy.decode('utf-8', errors).encode(encoding, errors)
