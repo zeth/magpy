@@ -1,12 +1,13 @@
 """Tests for Magpy."""
 
+import six
+
 import os
-from pkgutil import get_loader
 import unittest
 from magpy.tests.javascript import JavaScriptTestCase
 from magpy.server.instances import InstanceLoader
 from magpy.tests.test_ravenjs import open_test_collection
-import six
+from magpy.server.utils import get_mag_path
 
 # pylint: disable=R0904
 
@@ -15,8 +16,7 @@ class RavenTestCase(JavaScriptTestCase):
     """Load the Raven file into the session."""
     def setUp(self):  # pylint: disable=C0103
         super(RavenTestCase, self).setUp()
-        magpy_loader = get_loader('magpy')
-        magjs = os.path.join(magpy_loader.filename, 'static/js/mag.js')
+        magjs = os.path.join(get_mag_path(), 'static/js/mag.js')
         self.load(magjs)
         self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
 
