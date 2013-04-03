@@ -30,16 +30,6 @@ except ImportError:
     from urllib.parse import quote, urlsplit, urlunsplit
 
 
-# Quick hack for Python 3
-# TODO: replace this
-try:
-    basestring
-    unicode
-except NameError:
-    basestring = (str, bytes)
-    unicode = str
-
-
 def validate_model_instance(model,
                             instance,
                             handle_none=False,
@@ -438,7 +428,7 @@ class RegexValidator(object):
             self.code = code
 
         # Compile the regex if it was not passed pre-compiled.
-        if isinstance(self.regex, basestring):
+        if isinstance(self.regex, six.string_types):
             self.regex = re.compile(self.regex)
 
     def __call__(self, value):
@@ -822,7 +812,7 @@ def smart_str(stringy_thingy,
     """
     if strings_only and isinstance(stringy_thingy, (type(None), int)):
         return stringy_thingy
-    if not isinstance(stringy_thingy, basestring):
+    if not isinstance(stringy_thingy, six.string_types):
         try:
             return str(stringy_thingy)
         except UnicodeEncodeError:
@@ -880,38 +870,30 @@ def force_unicode(stringy_thingy,
     # Handle the common case first, saves 30-40% in performance when s
     # is an instance of unicode. This function gets called often in that
     # setting.
-    if isinstance(stringy_thingy, unicode):
+    if isinstance(stringy_thingy, six.text_type):
         return stringy_thingy
     if strings_only and is_protected_type(stringy_thingy):
         return stringy_thingy
     try:
-        if not isinstance(stringy_thingy, basestring,):
+        if not isinstance(stringy_thingy, six.string_types):
             if hasattr(stringy_thingy, '__unicode__'):
-                stringy_thingy = unicode(stringy_thingy)
+                # If we have a convert to unicode method then use it.
+                stringy_thingy = stringy_thingy.__unicode__()
             else:
-                try:
-                    stringy_thingy = unicode(str(stringy_thingy),
-                                             encoding,
-                                             errors)
-                except UnicodeEncodeError:
-                    if not isinstance(stringy_thingy, Exception):
-                        raise
-                    # If we get to here, the caller has passed in an Exception
-                    # subclass populated with non-ASCII data without special
-                    # handling to display as a string. We need to handle this
-                    # without raising a further exception. We do an
-                    # approximation to what the Exception's standard str()
-                    # output should be.
-                    stringy_thingy = u' '.join([force_unicode(arg,
-                                                              encoding,
-                                                              strings_only,
-                                                              errors) for \
-                                                    arg in stringy_thingy])
-        elif not isinstance(stringy_thingy, unicode):
-            # Note: We use .decode() here, instead of unicode(s, encoding,
-            # errors), so that if s is a SafeString, it ends up being a
-            # SafeUnicode at the end.
+                if six.PY3:
+                    if isinstance(stringy_thingy, bytes):
+                        stringy_thingy = six.text_type(stringy_thingy, encoding, errors)
+                    else:
+                        stringy_thingy = six.text_type(stringy_thingy)
+                else:
+                    stringy_thingy = six.text_type(bytes(stringy_thingy), encoding, errors)
+
+        else:
+            # Note: We use .decode() here, instead of six.text_type(s, encoding,
+            # errors), so that if s is a SafeBytes, it ends up being a
+            # SafeText at the end.
             stringy_thingy = stringy_thingy.decode(encoding, errors)
+
     except UnicodeDecodeError as excptn:
         if not isinstance(stringy_thingy, Exception):
             raise WrappedUnicodeDecodeError(stringy_thingy, *excptn.args)
@@ -921,12 +903,13 @@ def force_unicode(stringy_thingy,
             # working unicode method. Try to handle this without raising a
             # further exception by individually forcing the exception args
             # to unicode.
-            stringy_thingy = u' '.join([force_unicode(arg,
-                                                      encoding,
-                                                      strings_only,
-                                                      errors) for \
-                                            arg in stringy_thingy])
+            stringy_thingy = ' '.join([force_unicode(arg,
+                                                     encoding,
+                                                     strings_only,
+                                                     errors) for \
+                                           arg in stringy_thingy])
     return stringy_thingy
+
 
 # IP Address support
 # This code was mostly based on ipaddr-py
@@ -1219,7 +1202,7 @@ def validate_char(data):
     A string field, for small-to medium-sized strings.
     TODO: this will have to become a method to implement limit.
     """
-    if not isinstance(data, basestring):
+    if not isinstance(data, six.string_types):
         raise ValidationError("%s is not a char." % data)
 
 
@@ -1244,7 +1227,7 @@ def validate_decimal(data):
 def validate_filepath(data):
     """A the moment,
     this just checks that it is a string."""
-    if not isinstance(data, basestring):
+    if not isinstance(data, six.string_types):
         raise ValidationError("Not a filepath.")
 
 
@@ -1309,7 +1292,7 @@ def validate_positivesmallinteger(data):
 
 def validate_text(data):
     """Text of unlimited size."""
-    if not isinstance(data, basestring):
+    if not isinstance(data, six.string_types):
         raise ValidationError("Not a char.")
 
 
