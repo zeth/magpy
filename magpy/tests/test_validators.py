@@ -38,8 +38,12 @@ class TestSimpleValidators(TestCase):
     def test_single_message(self):
         """Test the error message."""
         validity = ValidationError('Not Valid')
-        self.assertEqual(str(validity), "[u'Not Valid']")
-        self.assertEqual(repr(validity), "ValidationError([u'Not Valid'])")
+        if six.PY3:
+            self.assertEqual(str(validity), "['Not Valid']")
+            self.assertEqual(repr(validity), "ValidationError(['Not Valid'])")
+        else:
+            self.assertEqual(str(validity), "[u'Not Valid']")
+            self.assertEqual(repr(validity), "ValidationError([u'Not Valid'])")
 
     def test_message_list(self):
         """Test a list of messages."""
