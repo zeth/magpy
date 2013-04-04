@@ -2128,7 +2128,7 @@ var MAG = (function () {
                     for (i = 0; i < elems.length; i += 1) {
                         elem = elems[i];
                         value = null;
-                        if (!elem.getAttribute('disabled')) { //TODO: this does not seem to always work!
+                        if (elem.disabled === false){     
                             if (elem.name ||  MAG.ELEMENT.has_className(elem, 'data_group')) {
                                 if (MAG.ELEMENT.has_className(elem, 'data_group')) {
                                     /** construct a list of all elements
