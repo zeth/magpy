@@ -67,7 +67,11 @@ class Command(BaseCommand):
                 suite.addTest(self.build_testcase(app, test_case, test_method))
             else:
                 # Get all the tests in the app.
-                unittests, doctests = self.get_tests(app)
+                try:
+                    unittests, doctests = self.get_tests(app)
+                except TypeError:
+                    print "No test directory in", app
+                    unittests = doctests = None
                 if unittests:
                     suite.addTest(unittests)
                 if doctests:
