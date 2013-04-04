@@ -1,4 +1,5 @@
 """Test auth."""
+from __future__ import print_function
 
 import unittest
 import time
@@ -56,9 +57,9 @@ class RavenUnauthorisedAuthTestCase(RavenTestCase):
         if not delay:
             delay = self._delay
 
-        print "%s sec delay to give the database time . . ." % delay,
+        print("%s sec delay to give the database time . . ." % delay, end=' ')
         time.sleep(delay)
-        print ". . now we continue"
+        print(". . now we continue")
 
     def test_unauthorised_create(self):
         """Test that we cannot create_resource."""
