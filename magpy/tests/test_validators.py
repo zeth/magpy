@@ -107,7 +107,7 @@ class TestSimpleValidators(TestCase):
         self.assertRaises(
             WrappedUnicodeDecodeError,
             smart_unicode,
-            Exception(b'\xff\xfeS0\n\x00')
+            Exception('\xff\xfeS0\n\x00')
             )
 
     def test_smart_str(self):
