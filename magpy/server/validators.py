@@ -545,12 +545,12 @@ class URLValidator(RegexValidator):
             url = value
 
         if self.verify_exists:
-            import warnings
-            warnings.warn(
-                "The URLField verify_exists argument has intractable security "
-                "and performance issues. Accordingly, it has been deprecated.",
-                DeprecationWarning
-                )
+            #import warnings
+            #warnings.warn(
+            #    "The URLField verify_exists argument has intractable security "
+            #    "and performance issues. Accordingly, it has been deprecated.",
+            #    DeprecationWarning
+            #    )
 
             headers = {
                 "Accept": "text/xml,application/xml,application/xhtml+xml,"
