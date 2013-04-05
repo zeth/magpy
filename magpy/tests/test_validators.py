@@ -102,12 +102,12 @@ class TestSimpleValidators(TestCase):
             b'\xff\xfeS0\n\x00'
             )
         self.assertEqual(
-            smart_unicode(Exception(u'Ryökäle')), u'Ry\xf6k\xe4le')
+            smart_unicode(Exception('Ryökäle')), 'Ry\xf6k\xe4le')
 
         self.assertRaises(
             WrappedUnicodeDecodeError,
             smart_unicode,
-            Exception('\xff\xfeS0\n\x00')
+            Exception(b'\xff\xfeS0\n\x00')
             )
 
     def test_smart_str(self):
