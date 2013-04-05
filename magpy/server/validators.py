@@ -650,11 +650,11 @@ class EmailValidator(object):
 validate_email = EmailValidator()
 
 
-slug_re = re.compile(r'^[-\w]+$')
+slug_re = re.compile(r'^[-a-zA-Z0-9_]+$')
 validate_slug = RegexValidator(
     slug_re,
-    u"Enter a valid 'slug' consisting of letters, numbers, "
-    u"underscores or hyphens.",
+    "Enter a valid 'slug' consisting of letters, numbers, "
+    "underscores or hyphens.",
     'invalid')
 
 ipv4_re = re.compile(r'^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
