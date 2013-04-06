@@ -102,13 +102,13 @@ class TestSimpleValidators(TestCase):
             b'\xff\xfeS0\n\x00'
             )
         self.assertEqual(
-            smart_unicode(Exception('Ryökäle')), 'Ry\xf6k\xe4le')
+            smart_unicode(Exception('Ryökäle')), u'Ry\xf6k\xe4le')
 
+        # Do I need this test?
         self.assertRaises(
             WrappedUnicodeDecodeError,
             smart_unicode,
-            Exception('\xff\xfeS0\n\x00')
-            )
+            Exception('\xff\xfeS0\n\x00'))
 
     def test_smart_str(self):
         """Test the smart_str function."""

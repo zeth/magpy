@@ -8,14 +8,14 @@ from functools import partial
 import tornado.web
 from bson.objectid import ObjectId
 from pymongo import Connection
+from pymongo.errors import ConnectionFailure
 
 from magpy.server.utils import instance_list_to_dict
 from magpy.server.validators import validate_model_instance, \
     ValidationError, MissingFields, parse_instance, validate_modification, \
     get_all_modification_modelnames
 
-from magpy.server.utils import instance_list_to_dict
-from pymongo.errors import ConnectionFailure
+
 
 DEFAULT_DATABASE = 'vmr'
 TEST_DATABASE = 'test'
@@ -24,7 +24,6 @@ TEST_DATABASE = 'test'
 class Database(object):
     """Simple database connection for use in serverside scripts etc."""
     def __init__(self,
-                 async=False,
                  database_name=None):
         try:
             self.connection = Connection(tz_aware=True)

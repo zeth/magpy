@@ -18,7 +18,6 @@ class InstanceLoader(object):
         self.handle_none = handle_none
         self.validation = validation
         self.database = Database(
-            async=False,
             database_name=database)
 
     def add_instance(self, instance):
