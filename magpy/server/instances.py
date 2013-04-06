@@ -27,7 +27,7 @@ class InstanceLoader(object):
         model_name = instance['_model']
         model = model_collection.find_one({'_id': model_name})
 
-        if self.validation == True:
+        if self.validation:
             try:
                 validate_model_instance(model,
                                         instance,

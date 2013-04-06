@@ -15,8 +15,6 @@ from magpy.server.validators import validate_model_instance, \
     ValidationError, MissingFields, parse_instance, validate_modification, \
     get_all_modification_modelnames
 
-
-
 DEFAULT_DATABASE = 'vmr'
 TEST_DATABASE = 'test'
 
@@ -71,7 +69,7 @@ class Database(object):
             category_instance[setting] = value
         else:
             category_instance = {'_id': category,
-                        setting: value}
+                                 setting: value}
         settings = self.get_collection('_settings')
         settings.save(category_instance)
 
@@ -190,7 +188,7 @@ class DatabaseMixin(object):
                        instance,
                        operation,
                        success,
-                       versional_comment = None):
+                       versional_comment=None):
         """Add version or versions to history."""
 
         if isinstance(instance, dict):
@@ -212,8 +210,8 @@ class ValidationMixin(object):
         """Validate an instance."""
         callback = partial(
             self._do_validate,
-            instance = instance,
-            success = success)
+            instance=instance,
+            success=success)
         self._request_model(instance, callback)
 
     def _old_request_model(self, instance, success):
@@ -232,39 +230,41 @@ class ValidationMixin(object):
 #    def validate_modifier(self, model_name, error,
 #                          modifier, success):
     def validate_modifier(self, model_name,
-                          error = None,
-                          modifier = None, success = None):
+                          error=None,
+                          modifier=None,
+                          success=None):
         """Validate a modification."""
         # start by getting the model
 
         callback = partial(self._get_embedded_modifier_models,
-                           model_name = model_name,
-                           modifier = modifier,
-                           success = success)
+                           model_name=model_name,
+                           modifier=modifier,
+                           success=success)
 
         self.get_model(model_name,
-                       callback = callback)
+                       callback=callback)
 
     def _get_embedded_modifier_models(self, model,
-                                      error = None,
-                                      model_name = None,
-                                      modifier = None,
-                                      success = None):
+                                      error=None,
+                                      model_name=None,
+                                      modifier=None,
+                                      success=None):
         """Validate a modification."""
         embedded_model_names, \
-            unknown_names = get_all_modification_modelnames(
-            model, modifier)
+            unknown_names = \
+            get_all_modification_modelnames(model,
+                                            modifier)
         model_names = deepcopy(embedded_model_names)
         model_names.append(model_name)
         model_names.extend(unknown_names)
 
         callback = partial(
             self._validate_modifier,
-            model_name = model_name,
-            modifier = modifier,
-            embedded_model_names = embedded_model_names,
-            unknown_names = unknown_names,
-            success = success)
+            model_name=model_name,
+            modifier=modifier,
+            embedded_model_names=embedded_model_names,
+            unknown_names=unknown_names,
+            success=success)
         self.get_models(model_names,
                         callback=callback)
 
@@ -284,8 +284,7 @@ class ValidationMixin(object):
                               embedded_models=embedded_models,
                               callback=success)
 
-
-    def _request_model(self, instance, success, get_embedded = True):
+    def _request_model(self, instance, success, get_embedded=True):
         """Get the model from the database."""
         coll = self.get_collection('_model')
         if get_embedded:
@@ -331,8 +330,10 @@ class ValidationMixin(object):
                                          embedded_model_names)
 
     def _get_embedded_models(self,
-                            model, instance, success,
-                            model_names):
+                             model,
+                             instance,
+                             success,
+                             model_names):
         """Get the models from the model_names."""
 
         callback = partial(self._handle_embedded_models,
@@ -369,6 +370,7 @@ class ValidationMixin(object):
             raise tornado.web.HTTPError(400, "Validation Error")
         success(instance)
 
+
 def create_version(instance,
                    operation,
                    versional_comment=None):
@@ -384,11 +386,10 @@ def create_version(instance,
         'document_model': instance['_model'],
         'document': instance,
         'comment': versional_comment,
-        'operation': operation
-        }
+        'operation': operation}
 
 
 def create_versions(instances, operation, versional_comment):
     """Create a version dictionaries for a list of instances."""
-    return [create_version(instance, operation, versional_comment) \
-                for instance in instances]
+    return [create_version(instance, operation, versional_comment)
+            for instance in instances]
