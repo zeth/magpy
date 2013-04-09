@@ -12,4 +12,3 @@ Where's the settings.py file?
 ------------------------------
 
 There is not one. The defaults are (hopefully) sensible, all site specific settings are in the database.
-

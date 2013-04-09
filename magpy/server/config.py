@@ -3,6 +3,7 @@
 import os
 import re
 import json
+from copy import deepcopy
 
 from magpy.server.utils import get_mag_path, make_cookie_secret
 
@@ -23,8 +24,6 @@ class MagpyConfigParser(object):
         if not config_file:
             config_file = os.path.join(
                 get_mag_path(), 'server', 'defaultconfig.json')
-        print "Using config File", config_file
-
         self.config_file_path = config_file
         self.load_json()
         if not getattr(self, 'cookie_secret', None):
@@ -58,3 +57,14 @@ class MagpyConfigParser(object):
 
             ## Store all the config data
             self.__dict__.update(json.loads(content))
+
+    def write(self):
+        """ Write the config back.
+        Sadly losing any comments.
+        TODO, keep track of comments somehow and put them back?
+        """
+        data = deepcopy(self.__dict__)
+        file_path = data.pop('config_file_path')
+
+        with open(file_path, 'w') as filepointer:
+            json.dump(data, filepointer, sort_keys=True, indent=4)
