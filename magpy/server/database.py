@@ -15,6 +15,8 @@ from magpy.server.validators import validate_model_instance, \
     ValidationError, MissingFields, parse_instance, validate_modification, \
     get_all_modification_modelnames
 
+from magpy.server.config import MagpyConfigParser
+
 DEFAULT_DATABASE = 'vmr'
 TEST_DATABASE = 'test'
 
@@ -22,7 +24,8 @@ TEST_DATABASE = 'test'
 class Database(object):
     """Simple database connection for use in serverside scripts etc."""
     def __init__(self,
-                 database_name=None):
+                 database_name=None,
+                 config_file=None):
         try:
             self.connection = Connection(tz_aware=True)
         except ConnectionFailure:
@@ -32,11 +35,15 @@ class Database(object):
             print("")
 
             raise
-        if not database_name:
-            database_name = DEFAULT_DATABASE
 
-        self.database = self.connection[database_name]
+        self.config = MagpyConfigParser(config_file)
+
+        if not database_name:
+            database_name = self.config.databases['default']['NAME']
+
         self._database_name = database_name
+        self.database = self.connection[database_name]
+
 
     def drop_database(self):
         """Drop the whole database."""
@@ -154,8 +161,9 @@ class DatabaseMixin(object):
             if self.request.headers['X-UnitTest'] == 'True':
                 self._database_name = TEST_DATABASE
                 return TEST_DATABASE
-        self._database_name = DEFAULT_DATABASE
-        return DEFAULT_DATABASE
+        default_database = self.application.databases['default']['NAME']
+        self._database_name = default_database
+        return default_database
 
     @property
     def database(self):

@@ -1,0 +1,9 @@
+{
+    "port": 8000,
+    "cookie_secret": "11oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/Vo=",
+    "databases": {
+        "default": {
+            "ENGINE": "mongodb",
+            "NAME": "vmr"}
+    }
+}

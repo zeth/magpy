@@ -3,7 +3,8 @@ import os
 from pkgutil import get_loader
 import json
 from bson import json_util
-
+import base64
+import uuid
 
 def dejsonify(value):
     """Converts from JSON when it is JSON, otherwise return it."""
@@ -23,3 +24,7 @@ def get_mag_path():
     """Return the file path of magpy."""
     loader = get_loader('magpy')
     return os.path.abspath(os.path.split(loader.get_filename())[0])
+
+def make_cookie_secret():
+    """Make a cookie secret."""
+    return base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)

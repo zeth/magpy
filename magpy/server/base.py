@@ -14,29 +14,33 @@ import tornado.web
 import tornado.autoreload
 import motor
 
+from magpy.server.config import MagpyConfigParser
 
 class App(tornado.web.Application):
     """Simple Web Application."""
-    def __init__(self, ioloop, handlers, cookie_secret):
+    def __init__(self, ioloop, handlers, cookie_secret, databases):
         settings = dict(
             debug=True,
             io_loop=ioloop,
             cookie_secret=cookie_secret)
         self.connection = motor.MotorClient(tz_aware=True).open_sync()
-
+        self.databases = databases
         # pylint: disable=W0142
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-def main(handlers, cookie_secret=None, port=8000):
+def main(handlers, port=None, config=None):
     """Site startup boilerplate."""
-    if not cookie_secret:
-        cookie_secret = open('cookie.txt').read()
+    magpyconf = MagpyConfigParser(config)
+    if not port:
+        port = getattr(magpyconf, 'port', 8000)
+
     tornado.options.parse_command_line()
     ioloop = tornado.ioloop.IOLoop.instance()
     http_server = tornado.httpserver.HTTPServer(App(ioloop,
                                                     handlers,
-                                                    cookie_secret))
+                                                    magpyconf.cookie_secret,
+                                                    magpyconf.databases))
     http_server.listen(port)
     tornado.autoreload.start()
     ioloop.start()
