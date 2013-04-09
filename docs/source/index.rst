@@ -18,6 +18,7 @@ Contents:
    install.rst
    serverside.rst
    management.rst
+   settings.rst
    customcommands.rst
    applications.rst
    models.rst
