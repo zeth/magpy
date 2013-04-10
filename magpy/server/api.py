@@ -500,7 +500,6 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                 del query['_count']
 
             if '_fields' in query:
-                print ("_fields is", query['_fields'], type(query['_fields']))
                 kwargs['fields'] = dejsonify(query['_fields'])
                 del query['_fields']
 
