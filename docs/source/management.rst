@@ -104,7 +104,7 @@ Remove a setting from the given setting category.
 run [options] [port]
 --------------------
 
-Run the REST server.
+Run the REST server. See :doc:`serverside`
 
 test <app or test identifier>
 -----------------------------

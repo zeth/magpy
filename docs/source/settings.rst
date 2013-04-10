@@ -28,14 +28,15 @@ Also some data may be so sensitive that we may not be comfortable exposing to th
 
 The config file is (of course) in the JSON format, you can put keys and values in as you might expect.
 
-The settings file also allows Javascript style comments, these are stripped out before the file is loaded. For single line comments use double slash // and for multi-line comments use /* ... */.
+The settings file also allows Javascript style comments, these are stripped out before the file is loaded.
 
 You can tell the server where to find the settings file with the --conf argument to mag.py run::
 
     mag.py run --conf /srv/mysite/mysitesettings.json
 
-If you don't give a settings file, then Magpy uses the file magpy/server/defaultconfig.json
+If you don't give a settings file, then Magpy uses the file magpy/server/defaultconfig.json, which by default looks like this:
 
+.. code-block:: javascript
 
     {
         "port": 8000,
@@ -65,9 +66,9 @@ Database Settings
 The database settings allow you to define the database(s) used by your site.
 
 
-.. admonition:: Motivation
+.. note:: Motivation
 
-    One of my personal grips while using a major Python web framework, is that it required a 'settings.py' file that started out quite long, and then when you included some third party applications, got even longer. A lot of these settings could have just been replaced by sensible defaults. Furthermore, the whole thing was a maintenance nightmare - every time a new version of the framework or an application came out, it would all break because the settings.py file was out of date. When you have a few dozen sites running on the framework, going through every settings.py file with diff was like pulling teeth. Don't get me started on a a third party tool (named after a point on the compass) which was supposed to solve the problem merely but merely compounded it.
+    One of my personal gripes while using a major Python web framework, is that it required a 'settings.py' file that started out quite long, and then when you included some third party applications, got even longer. A lot of these settings could have just been replaced by sensible defaults. Furthermore, the whole thing was a maintenance nightmare - every time a new version of the framework or an application came out, it would all break because the settings.py file was out of date. When you have a few dozen sites running on the framework, going through every settings.py file with diff was like pulling teeth. Don't get me started on a a third party tool (named after a point on the compass) which was supposed to solve the problem merely but merely compounded it.
 
     This problem never happens with some other applications, for example, Wordpress, since most of the settings are in the database. When the schema changes, the authors of Wordpress or plugins would provide a helper script or command which would migrate the schema for you.
 
