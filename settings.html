@@ -100,9 +100,9 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>Motivation</p>
-<p>One of my personal gripes while using a major Python web framework, is that it required a &#8216;settings.py&#8217; file that started out quite long, and then when you included some third party applications, got even longer. A lot of these settings could have just been replaced by sensible defaults. Furthermore, the whole thing was a maintenance nightmare - every time a new version of the framework or an application came out, it would all break because the settings.py file was out of date. When you have a few dozen sites running on the framework, going through every settings.py file with diff was like pulling teeth. Don&#8217;t get me started on a a third party tool (named after a point on the compass) which was supposed to solve the problem merely but merely compounded it.</p>
+<p>One of my personal gripes while using a major Python web framework, is that it required a &#8216;settings.py&#8217; file that started out quite long, and then when you included some third party applications, got even longer. A lot of these settings could have just been replaced by sensible defaults. Furthermore, the whole thing was a maintenance nightmare - every time a new version of the framework or an application came out, it would all break because the settings.py file was out of date. When you have a few dozen sites running on the framework, going through every settings.py file with diff was like pulling teeth.</p>
 <p>This problem never happens with some other applications, for example, Wordpress, since most of the settings are in the database. When the schema changes, the authors of Wordpress or plugins would provide a helper script or command which would migrate the schema for you.</p>
-<p class="last">I avoided any config file for as long as possible, but once Magpy started becoming useful and I had to deploy instances of it, it became inevitable. However, it is still optional to some degree - you can at least develop a site without worrying too much about it.</p>
+<p class="last">I avoided any config file for as long as possible, but it became inevitable. However, it is still optional to some degree - you can at least develop a site without worrying too much about it.</p>
 </div>
 </div>
 </div>
