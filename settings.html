@@ -1,0 +1,175 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Settings &mdash; Magpy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Magpy 1.0 documentation" href="index.html" />
+    <link rel="next" title="Custom Commands" href="customcommands.html" />
+    <link rel="prev" title="mag.py management commands" href="management.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="customcommands.html" title="Custom Commands"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="management.html" title="mag.py management commands"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Magpy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="settings">
+<h1>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h1>
+<p>Settings are any little bits of site specific information that you do not want to hard code into your applications&#8217; source code.</p>
+<div class="section" id="settings-in-the-database">
+<h2>Settings in the database<a class="headerlink" href="#settings-in-the-database" title="Permalink to this headline">¶</a></h2>
+<p>It is encouraged to put as many site specific settings as possible in the database. Either in the _settings collection or your own defined collections.</p>
+<p>There is a handy mag.py command for quickly adding a setting to the database, use as follows:</p>
+<div class="highlight-python"><pre>mag.py add_setting category setting value</pre>
+</div>
+<p>_settings is a collection where each instance is a category of settings and each instance field is the settings name and value.</p>
+</div>
+<div class="section" id="config-file">
+<h2>Config File<a class="headerlink" href="#config-file" title="Permalink to this headline">¶</a></h2>
+<p>A lot of site specific settings are just data like any other, and are best put in the database.</p>
+<p>However, in order to connect to the database, we need certain settings to be defined already - i.e. what the database is called. These are in the config file.</p>
+<p>Also some data may be so sensitive that we may not be comfortable exposing to the website at all, such as the cookie secret.</p>
+<p>The config file is (of course) in the JSON format, you can put keys and values in as you might expect.</p>
+<p>The settings file also allows Javascript style comments, these are stripped out before the file is loaded.</p>
+<p>You can tell the server where to find the settings file with the &#8211;conf argument to mag.py run:</p>
+<div class="highlight-python"><pre>mag.py run --conf /srv/mysite/mysitesettings.json</pre>
+</div>
+<p>If you don&#8217;t give a settings file, then Magpy uses the file magpy/server/defaultconfig.json, which by default looks like this:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;port&quot;</span><span class="o">:</span> <span class="mi">8000</span><span class="p">,</span>
+    <span class="s2">&quot;cookie_secret&quot;</span><span class="o">:</span> <span class="s2">&quot;11oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o/Vo=&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;databases&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;default&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;ENGINE&quot;</span><span class="o">:</span> <span class="s2">&quot;mongodb&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;NAME&quot;</span><span class="o">:</span> <span class="s2">&quot;vmr&quot;</span><span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cookie-secret">
+<h2>Cookie Secret<a class="headerlink" href="#cookie-secret" title="Permalink to this headline">¶</a></h2>
+<p>When users of your website log in, they each receive a cookie, this is signed using a secret key (i.e. a cookie secret). Therefore, you should create your own cookie secret and specify it in the config file.</p>
+<p>If you create a config file using the create_config_file command, it will automatically create a cookie secret for you. E.g. say config.json is the new file path:</p>
+<div class="highlight-python"><pre>mag.py create_config_file config.json</pre>
+</div>
+<p>If you accidentally share the cookie secret, e.g. accidentally push it to github or something, then don&#8217;t worry. All you need to do is run the command again on the file, which will update the cookie secret.</p>
+</div>
+<div class="section" id="database-settings">
+<h2>Database Settings<a class="headerlink" href="#database-settings" title="Permalink to this headline">¶</a></h2>
+<p>The database settings allow you to define the database(s) used by your site.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Motivation</p>
+<p>One of my personal gripes while using a major Python web framework, is that it required a &#8216;settings.py&#8217; file that started out quite long, and then when you included some third party applications, got even longer. A lot of these settings could have just been replaced by sensible defaults. Furthermore, the whole thing was a maintenance nightmare - every time a new version of the framework or an application came out, it would all break because the settings.py file was out of date. When you have a few dozen sites running on the framework, going through every settings.py file with diff was like pulling teeth. Don&#8217;t get me started on a a third party tool (named after a point on the compass) which was supposed to solve the problem merely but merely compounded it.</p>
+<p>This problem never happens with some other applications, for example, Wordpress, since most of the settings are in the database. When the schema changes, the authors of Wordpress or plugins would provide a helper script or command which would migrate the schema for you.</p>
+<p class="last">I avoided any config file for as long as possible, but once Magpy started becoming useful and I had to deploy instances of it, it became inevitable. However, it is still optional to some degree - you can at least develop a site without worrying too much about it.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Settings</a><ul>
+<li><a class="reference internal" href="#settings-in-the-database">Settings in the database</a></li>
+<li><a class="reference internal" href="#config-file">Config File</a></li>
+<li><a class="reference internal" href="#cookie-secret">Cookie Secret</a></li>
+<li><a class="reference internal" href="#database-settings">Database Settings</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="management.html"
+                        title="previous chapter">mag.py management commands</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="customcommands.html"
+                        title="next chapter">Custom Commands</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/settings.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="customcommands.html" title="Custom Commands"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="management.html" title="mag.py management commands"
+             >previous</a> |</li>
+        <li><a href="index.html">Magpy 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Zeth.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
