@@ -32,10 +32,10 @@ class Command(BaseCommand):
         target = database.get_setting('static', 'root')
         if not target:
             raise CommandError(
-                'No static root setting. Set static root with:\n'
-                'mag.py add_setting static root <directory-name>\n'
-                'E.g.\n'
-                'mag.py add_setting static root /var/www/static')
+                u'No static root setting. Set static root with:\n'
+                u'mag.py add_setting static root <directory-name>\n'
+                u'E.g.\n'
+                u'mag.py add_setting static root /var/www/static')
 
         # 1. Get the list of applications
         apps = database.get_app_list()
