@@ -57,6 +57,11 @@ class Database(object):
         """Drop a collection by name."""
         self.database.drop_collection(collection)
 
+    def drop_collections(self, collections):
+        """Drop a named tuple or list of collections."""
+        for collection in collections:
+            self.drop_collection(collection)
+
     def get_setting_category(self, category):
         """Get a setting category from the database."""
         settings = self.get_collection('_settings')
