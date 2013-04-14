@@ -44,4 +44,5 @@ class Collection(object):
 
     def save(self, instance):
         """Save an instance."""
+        instance['id'] = instance.pop('_id')
         self.database.database.save(self.name, instance)
