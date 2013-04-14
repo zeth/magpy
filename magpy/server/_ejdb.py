@@ -1,0 +1,41 @@
+"""EJDB driver for Magpy.
+Currently does not do much except support certain command line scripts.
+"""
+import pyejdb
+
+
+class Database(object):
+    """Simple database connection for use in serverside scripts etc."""
+    def __init__(self,
+                 database_name=None,
+                 config_file=None):
+        self.config_file = config_file
+        self._database_name = database_name
+        self._filename = '%s.tct' % database_name
+        self.database = pyejdb.EJDB(self._filename,
+                                    pyejdb.DEFAULT_OPEN_MODE |
+                                    pyejdb.JBOTRUNC)
+
+    def get_collection(self, collection):
+        """Get a collection by name."""
+        return Collection(collection, self)
+
+    def drop_collections(self, collections):
+        """Drop a named tuple or list of collections."""
+        for collection in collections:
+            self.database.dropCollection(collection)
+
+
+class Collection(object):
+    """A mongodb style collection object."""
+    def __init__(self, name, database):
+        self.database = database
+        self.name = name
+
+    def find(self, collection):
+        """Find instances from a collection."""
+        return self.database.database.find(self.name, collection)
+
+    def save(self, instance):
+        """Save an instance."""
+        self.database.database.save(self.name, instance)
