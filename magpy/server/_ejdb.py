@@ -32,9 +32,9 @@ class Collection(object):
         self.database = database
         self.name = name
 
-    def find(self, collection):
+    def find(self):
         """Find instances from a collection."""
-        return self.database.database.find(self.name, collection)
+        return self.database.database.find(self.name)
 
     def save(self, instance):
         """Save an instance."""
