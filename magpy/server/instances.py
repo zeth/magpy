@@ -22,12 +22,11 @@ class InstanceLoader(object):
 
     def add_instance(self, instance):
         """Add instance to the db."""
-        model_collection = self.database.get_collection('_model')
-
         model_name = instance['_model']
-        model = model_collection.find_one({'_id': model_name})
 
         if self.validation:
+            model_collection = self.database.get_collection('_model')
+            model = model_collection.find_one({'_id': model_name})
             try:
                 validate_model_instance(model,
                                         instance,
@@ -36,8 +35,9 @@ class InstanceLoader(object):
                 print("Died on instance:")
                 print(instance)
                 raise
+
         # We got this far, yay!
-        instance_collection = self.database.get_collection(instance['_model'])
+        instance_collection = self.database.get_collection(model_name)
         instance_collection.save(instance)
         sys.stdout.write(model_name[0])
 
