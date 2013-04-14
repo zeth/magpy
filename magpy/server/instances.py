@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-from magpy.server.database import Database
 from magpy.server.validators import validate_model_instance, ValidationError
 import sys
 
@@ -13,10 +12,16 @@ class InstanceLoader(object):
     def __init__(self,
                  handle_none=False,
                  validation=True,
-                 database=None):
+                 database=None,
+                 embedded=False):
         """Startup the loader."""
         self.handle_none = handle_none
         self.validation = validation
+        if embedded:
+            from magpy.server._ejdb import Database
+        else:
+            from magpy.server.database import Database
+
         self.database = Database(
             database_name=database)
 

@@ -1,6 +1,7 @@
 """EJDB driver for Magpy.
 Currently does not do much except support certain command line scripts.
 """
+import os
 import pyejdb
 
 
@@ -10,9 +11,10 @@ class Database(object):
                  database_name=None,
                  config_file=None):
         self.config_file = config_file
+        if not database_name:
+            database_name = os.path.expanduser('~/magpy.tct')
         self._database_name = database_name
-        self._filename = '%s.tct' % database_name
-        self.database = pyejdb.EJDB(self._filename,
+        self.database = pyejdb.EJDB(database_name,
                                     pyejdb.DEFAULT_OPEN_MODE |
                                     pyejdb.JBOTRUNC)
 
@@ -35,6 +37,10 @@ class Collection(object):
     def find(self):
         """Find instances from a collection."""
         return self.database.database.find(self.name)
+
+    def find_one(self):
+        """Find a single instance from a collection."""
+        raise NotImplementedError
 
     def save(self, instance):
         """Save an instance."""
