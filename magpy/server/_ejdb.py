@@ -3,7 +3,8 @@ Currently does not do much except support certain command line scripts.
 """
 import os
 import pyejdb
-
+from pyejdb.bson import BSON_ObjectId
+from pyejdb.typecheck import InputParameterError
 
 class Database(object):
     """Simple database connection for use in serverside scripts etc."""
@@ -44,5 +45,12 @@ class Collection(object):
 
     def save(self, instance):
         """Save an instance."""
-        instance['id'] = instance.pop('_id')
+        # Ejdb is more specific about ids than mongodb
+        if instance['_id']:
+            try:
+                # Check it is a valid objectid
+                BSON_ObjectId(instance['_id'])
+            except InputParameterError:
+                # Move the _id into id
+                instance['id'] = instance.pop('_id')
         self.database.database.save(self.name, instance)
