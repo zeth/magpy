@@ -44,7 +44,6 @@ class Database(object):
         self._database_name = database_name
         self.database = self.connection[database_name]
 
-
     def drop_database(self):
         """Drop the whole database."""
         self.connection.drop_database(self.database)
@@ -53,6 +52,10 @@ class Database(object):
     def get_collection(self, collection):
         """Get a collection by name."""
         return self.database[collection]
+
+    def drop_collection(self, collection):
+        """Drop a collection by name."""
+        self.database.drop_collection(collection)
 
     def get_setting_category(self, category):
         """Get a setting category from the database."""
