@@ -13,7 +13,7 @@ class Database(object):
                  config_file=None):
         self.config_file = config_file
         if not database_name:
-            database_name = os.path.expanduser('~/magpy.tct')
+            database_name = os.path.expanduser('~/db/magpy.tct')
         self._database_name = database_name
         self.database = pyejdb.EJDB(database_name,
                                     pyejdb.DEFAULT_OPEN_MODE |
