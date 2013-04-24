@@ -1,4 +1,4 @@
-"""Database access."""
+B"""Database access."""
 
 from __future__ import print_function
 
@@ -20,7 +20,7 @@ from magpy.server.config import MagpyConfigParser
 try:
     from settings import DEFAULT_DATABASE
 except:
-    DEFAULT_DATABASE = 'vmr'
+    DEFAULT_DATABASE = None
 
 try:
     from settings import TEST_DATABASE
@@ -46,7 +46,10 @@ class Database(object):
         self.config = MagpyConfigParser(config_file)
 
         if not database_name:
-            database_name = self.config.databases['default']['NAME']
+            if DEFAULT_DATABASE:
+                database_name = DEFAULT_DATABASE
+            else:
+                database_name = self.config.databases['default']['NAME']
 
         self._database_name = database_name
         self.database = self.connection[database_name]
