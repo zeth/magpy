@@ -1,17 +1,32 @@
-"""Validation code, much of it forked from Django."""
+"""Validation code, much of it originally forked from Django."""
+from __future__ import print_function
+import six
 
-# Import half of the friggin stdlib
-import platform
+# Import half of the friggin stdlib :)
 import re
-import urllib
-import urllib2
-import urlparse
 import operator
 import types
 import datetime
 from decimal import Decimal
 import xml.parsers.expat
 from numbers import Number
+from functools import reduce
+
+# Now we try to survive Python 3
+try:
+    # Python 2
+    from urllib2 import Request, OpenerDirector, \
+        HTTPErrorProcessor, UnknownHandler, HTTPHandler, \
+        HTTPDefaultErrorHandler, FTPHandler, HTTPSHandler
+    from urllib import quote
+    from urlparse import urlsplit, urlunsplit
+
+except ImportError:
+    # Python 3
+    from urllib.request import Request, OpenerDirector, \
+        HTTPErrorProcessor, UnknownHandler, HTTPHandler, \
+        HTTPDefaultErrorHandler, FTPHandler, HTTPSHandler
+    from urllib.parse import quote, urlsplit, urlunsplit
 
 
 def validate_model_instance(model,
@@ -51,7 +66,7 @@ def validate_model_instance(model,
 
 def parse_instance(instance, result_set):
     """Add the models that an instance uses to result_set."""
-    for key, value in instance.iteritems():
+    for key, value in six.iteritems(instance):
         if key == '_model':
             result_set.add(value)
         if isinstance(value, dict):
@@ -187,8 +202,8 @@ class ModelValidator(object):
                                             instance[field]) for \
                             field in instance_keys]
         except TypeError:
-            print "Died on %s " % instance['_id']
-            print "Perhaps invalid model?"
+            print("Died on %s " % instance['_id'])
+            print("Perhaps invalid model?")
             raise
 
         # If they are all valid, then do nothing
@@ -223,9 +238,10 @@ class ModelValidator(object):
                     raise MissingFields(tuple(awol))
 
     def validate_modification(self, model, modification):
-        for modification_name, modification_value in modification.iteritems():
+        for modification_name, \
+                modification_value in six.iteritems(modification):
             validator = MODIFICATION_DISPATCHER[modification_name]
-            for tfield, value in modification_value.iteritems():
+            for tfield, value in six.iteritems(modification_value):
                 field, field_type = self.get_field(tfield, model)
                 validator(self, model, field, field_type, value)
 
@@ -256,9 +272,9 @@ def get_all_modification_modelnames(model, modification):
     """Get all model names from a modification."""
     models = set()
     tree = []
-    for modification_type, field in modification.iteritems():
+    for modification_type, field in six.iteritems(modification):
         tree.append(field)
-        for fieldname, fieldvalue in field.iteritems():
+        for fieldname, fieldvalue in six.iteritems(field):
             tree.append(fieldname)
             if '.' in fieldname:
                 parts = fieldname.split('.')
@@ -411,7 +427,7 @@ class RegexValidator(object):
             self.code = code
 
         # Compile the regex if it was not passed pre-compiled.
-        if isinstance(self.regex, basestring):
+        if isinstance(self.regex, six.string_types):
             self.regex = re.compile(self.regex)
 
     def __call__(self, value):
@@ -478,6 +494,9 @@ class URLValidator(RegexValidator):
     (which will hold the response in memory) to grow without bound,
     thus consuming not only server processes but also server memory.
 
+    Note, Python 2.5 is not actually supported by Magpy because of the
+    Python 3 compatibility.
+
     For Python versions 2.6 and above, which support setting a timeout,
     a timeout of ten seconds will be set;
 
@@ -490,7 +509,8 @@ class URLValidator(RegexValidator):
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)'
         r'+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
         r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
         r'(?::\d+)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
@@ -500,27 +520,24 @@ class URLValidator(RegexValidator):
         self.verify_exists = verify_exists
         self.user_agent = validator_user_agent
 
+
     def __call__(self, value):
         try:
             super(URLValidator, self).__call__(value)
-        except ValidationError, excptn:
+        except ValidationError as excptn:
             # Trivial case failed. Try for possible IDN domain
             if value:
-                value = smart_unicode(value)
-                scheme, \
-                    netloc, \
-                    path, \
-                    query, \
-                    fragment = urlparse.urlsplit(value)
+                value = force_unicode(value)
+                scheme, netloc, path, query, fragment = urlsplit(value)
                 try:
-                    netloc = netloc.encode('idna')  # IDN -> ACE
+                    netloc = netloc.encode('idna').decode('ascii')  # IDN -> ACE
                 except UnicodeError:  # invalid domain part
                     raise excptn
-                url = urlparse.urlunsplit((scheme,
-                                           netloc,
-                                           path,
-                                           query,
-                                           fragment))
+                url = urlunsplit((scheme,
+                                  netloc,
+                                  path,
+                                  query,
+                                  fragment))
                 super(URLValidator, self).__call__(url)
             else:
                 raise
@@ -528,12 +545,12 @@ class URLValidator(RegexValidator):
             url = value
 
         if self.verify_exists:
-            import warnings
-            warnings.warn(
-                "The URLField verify_exists argument has intractable security "
-                "and performance issues. Accordingly, it has been deprecated.",
-                DeprecationWarning
-                )
+            #import warnings
+            #warnings.warn(
+            #    "The URLField verify_exists argument has intractable security "
+            #    "and performance issues. Accordingly, it has been deprecated.",
+            #    DeprecationWarning
+            #    )
 
             headers = {
                 "Accept": "text/xml,application/xml,application/xhtml+xml,"
@@ -545,27 +562,27 @@ class URLValidator(RegexValidator):
             }
             url = url.encode('utf-8')
             # Quote characters from the unreserved set, refs #16812
-            url = urllib.quote(url, "!*'();:@&=+$,/?#[]")
+            url = quote(url, "!*'();:@&=+$,/?#[]")
             broken_error = ValidationError(
                 u'This URL appears to be a broken link.',
                 code='invalid_link')
             try:
-                req = urllib2.Request(url, None, headers)
+                req = Request(url, None, headers)
                 req.get_method = lambda: 'HEAD'
                 #Create an opener that does not support local file access
-                opener = urllib2.OpenerDirector()
+                opener = OpenerDirector()
 
                 #Don't follow redirects, but don't treat them as errors either
                 error_nop = lambda *args, **kwargs: True
-                http_error_processor = urllib2.HTTPErrorProcessor()
+                http_error_processor = HTTPErrorProcessor()
                 http_error_processor.http_error_301 = error_nop
                 http_error_processor.http_error_302 = error_nop
                 http_error_processor.http_error_307 = error_nop
 
-                handlers = [urllib2.UnknownHandler(),
-                            urllib2.HTTPHandler(),
-                            urllib2.HTTPDefaultErrorHandler(),
-                            urllib2.FTPHandler(),
+                handlers = [UnknownHandler(),
+                            HTTPHandler(),
+                            HTTPDefaultErrorHandler(),
+                            FTPHandler(),
                             http_error_processor]
                 try:
                     import ssl
@@ -573,57 +590,71 @@ class URLValidator(RegexValidator):
                     # Python isn't compiled with SSL support
                     pass
                 else:
-                    handlers.append(urllib2.HTTPSHandler())
-                map(opener.add_handler, handlers)
-                if platform.python_version_tuple() >= (2, 6):
-                    opener.open(req, timeout=10)
-                else:
-                    opener.open(req)
+                    handlers.append(HTTPSHandler())
+                list(map(opener.add_handler, handlers))
+
+                opener.open(req, timeout=10)
+
             except ValueError:
                 raise ValidationError(u'Enter a valid URL.', code='invalid')
             except:  # urllib2.URLError, httplib.InvalidURL, etc.
                 raise broken_error
 
 
-class EmailValidator(RegexValidator):
-    """
-    A RegexValidator instance that ensures a value looks like an email address.
-    """
+class EmailValidator(object):
+    message = 'Enter a valid email address.'
+    code = 'invalid'
+    user_regex = re.compile(
+        r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
+        r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*"$)', # quoted-string
+        re.IGNORECASE)
+    domain_regex = re.compile(
+        r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?$)'  # domain
+        # literal form, ipv4 address (SMTP 4.1.3)
+        r'|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$',
+        re.IGNORECASE)
+    domain_whitelist = ['localhost']
+
+    def __init__(self, message=None, code=None, whitelist=None):
+        if message is not None:
+            self.message = message
+        if code is not None:
+            self.code = code
+        if whitelist is not None:
+            self.domain_whitelist = whitelist
 
     def __call__(self, value):
-        try:
-            super(EmailValidator, self).__call__(value)
-        except ValidationError, excptn:
-            # Trivial case failed. Try for possible IDN domain-part
-            if value and u'@' in value:
-                parts = value.split(u'@')
-                try:
-                    parts[-1] = parts[-1].encode('idna')
-                except UnicodeError:
-                    raise excptn
-                super(EmailValidator, self).__call__(u'@'.join(parts))
-            else:
-                raise
+        value = force_unicode(value)
 
-EMAIL_RE = re.compile(
-    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+"
-    r"(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-    # quoted-string, see also http://tools.ietf.org/html/rfc2822#section-3.2.5
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|'
-    r'\\[\001-\011\013\014\016-\177])*"'
-    r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?$)'  # domain
-    r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-    r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$',
-    re.IGNORECASE)  # literal form, ipv4 address (SMTP 4.1.3)
-validate_email = EmailValidator(EMAIL_RE,
-                                u'Enter a valid e-mail address.',
-                                'invalid')
+        if not value or '@' not in value:
+            raise ValidationError(self.message, code=self.code)
 
-slug_re = re.compile(r'^[-\w]+$')
+        user_part, domain_part = value.rsplit('@', 1)
+
+        if not self.user_regex.match(user_part):
+            raise ValidationError(self.message, code=self.code)
+
+        if (not domain_part in self.domain_whitelist and
+                not self.domain_regex.match(domain_part)):
+            # Try for possible IDN domain-part
+            try:
+                domain_part = domain_part.encode('idna').decode('ascii')
+                if not self.domain_regex.match(domain_part):
+                    raise ValidationError(self.message, code=self.code)
+                else:
+                    return
+            except UnicodeError:
+                pass
+            raise ValidationError(self.message, code=self.code)
+
+validate_email = EmailValidator()
+
+
+slug_re = re.compile(r'^[-a-zA-Z0-9_]+$')
 validate_slug = RegexValidator(
     slug_re,
-    u"Enter a valid 'slug' consisting of letters, numbers, "
-    u"underscores or hyphens.",
+    "Enter a valid 'slug' consisting of letters, numbers, "
+    "underscores or hyphens.",
     'invalid')
 
 ipv4_re = re.compile(r'^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
@@ -790,9 +821,9 @@ def smart_str(stringy_thingy,
     semantics from Python's builtin str() function,
     but the difference can be useful.
     """
-    if strings_only and isinstance(stringy_thingy, (types.NoneType, int)):
+    if strings_only and isinstance(stringy_thingy, (type(None), int)):
         return stringy_thingy
-    if not isinstance(stringy_thingy, basestring):
+    if not isinstance(stringy_thingy, six.string_types):
         try:
             return str(stringy_thingy)
         except UnicodeEncodeError:
@@ -803,7 +834,7 @@ def smart_str(stringy_thingy,
                 return ' '.join([smart_str(arg, encoding, strings_only,
                         errors) for arg in stringy_thingy])
             return unicode(stringy_thingy).encode(encoding, errors)
-    elif isinstance(stringy_thingy, unicode):
+    elif isinstance(stringy_thingy, six.text_type):
         return stringy_thingy.encode(encoding, errors)
     elif stringy_thingy and encoding != 'utf-8':
         return stringy_thingy.decode('utf-8', errors).encode(encoding, errors)
@@ -818,7 +849,7 @@ def is_protected_type(obj):
     force_unicode(strings_only=True).
     """
     return isinstance(obj, (
-        types.NoneType,
+        type(None),
         int, long,
         datetime.datetime, datetime.date, datetime.time,
         float, Decimal)
@@ -850,39 +881,31 @@ def force_unicode(stringy_thingy,
     # Handle the common case first, saves 30-40% in performance when s
     # is an instance of unicode. This function gets called often in that
     # setting.
-    if isinstance(stringy_thingy, unicode):
+    if isinstance(stringy_thingy, six.text_type):
         return stringy_thingy
     if strings_only and is_protected_type(stringy_thingy):
         return stringy_thingy
     try:
-        if not isinstance(stringy_thingy, basestring,):
+        if not isinstance(stringy_thingy, six.string_types):
             if hasattr(stringy_thingy, '__unicode__'):
-                stringy_thingy = unicode(stringy_thingy)
+                # If we have a convert to unicode method then use it.
+                stringy_thingy = stringy_thingy.__unicode__()
             else:
-                try:
-                    stringy_thingy = unicode(str(stringy_thingy),
-                                             encoding,
-                                             errors)
-                except UnicodeEncodeError:
-                    if not isinstance(stringy_thingy, Exception):
-                        raise
-                    # If we get to here, the caller has passed in an Exception
-                    # subclass populated with non-ASCII data without special
-                    # handling to display as a string. We need to handle this
-                    # without raising a further exception. We do an
-                    # approximation to what the Exception's standard str()
-                    # output should be.
-                    stringy_thingy = u' '.join([force_unicode(arg,
-                                                              encoding,
-                                                              strings_only,
-                                                              errors) for \
-                                                    arg in stringy_thingy])
-        elif not isinstance(stringy_thingy, unicode):
-            # Note: We use .decode() here, instead of unicode(s, encoding,
-            # errors), so that if s is a SafeString, it ends up being a
-            # SafeUnicode at the end.
+                if six.PY3:
+                    if isinstance(stringy_thingy, bytes):
+                        stringy_thingy = six.text_type(stringy_thingy, encoding, errors)
+                    else:
+                        stringy_thingy = six.text_type(stringy_thingy)
+                else:
+                    stringy_thingy = six.text_type(bytes(stringy_thingy), encoding, errors)
+
+        else:
+            # Note: We use .decode() here, instead of six.text_type(s, encoding,
+            # errors), so that if s is a SafeBytes, it ends up being a
+            # SafeText at the end.
             stringy_thingy = stringy_thingy.decode(encoding, errors)
-    except UnicodeDecodeError, excptn:
+
+    except UnicodeDecodeError as excptn:
         if not isinstance(stringy_thingy, Exception):
             raise WrappedUnicodeDecodeError(stringy_thingy, *excptn.args)
         else:
@@ -891,12 +914,13 @@ def force_unicode(stringy_thingy,
             # working unicode method. Try to handle this without raising a
             # further exception by individually forcing the exception args
             # to unicode.
-            stringy_thingy = u' '.join([force_unicode(arg,
-                                                      encoding,
-                                                      strings_only,
-                                                      errors) for \
-                                            arg in stringy_thingy])
+            stringy_thingy = ' '.join([force_unicode(arg,
+                                                     encoding,
+                                                     strings_only,
+                                                     errors) for \
+                                           arg in stringy_thingy])
     return stringy_thingy
+
 
 # IP Address support
 # This code was mostly based on ipaddr-py
@@ -1137,7 +1161,7 @@ def _explode_shorthand_ip_string(ip_str):
         sep = len(hextet[0].split(':')) + len(hextet[1].split(':'))
         new_ip = hextet[0].split(':')
 
-        for _ in xrange(fill_to - sep):
+        for _ in range(fill_to - sep):
             new_ip.append('0000')
         new_ip += hextet[1].split(':')
 
@@ -1164,7 +1188,7 @@ def _is_shorthand_ip(ip_str):
     """
     if ip_str.count('::') == 1:
         return True
-    if filter(lambda x: len(x) < 4, ip_str.split(':')):
+    if list(filter(lambda x: len(x) < 4, ip_str.split(':'))):
         return True
     return False
 
@@ -1175,13 +1199,14 @@ def validate_bool(data):
         raise ValidationError("Not a bool.")
 
 
-def validate_long(data):
-    """If the data is (or can become) a long
-    i.e. a 64 bit integer."""
-    try:
-        long(data)
-    except (ValueError, TypeError):
-        raise ValidationError('Not a long')
+# Long does not exist anymore in Python3, int is now long.
+#def validate_long(data):
+#    """If the data is (or can become) a long
+#    i.e. a 64 bit integer."""
+#    try:
+#        long(data)
+#    except (ValueError, TypeError):
+#        raise ValidationError('Not a long')
 
 
 def validate_char(data):
@@ -1189,7 +1214,7 @@ def validate_char(data):
     A string field, for small-to medium-sized strings.
     TODO: this will have to become a method to implement limit.
     """
-    if not isinstance(data, basestring):
+    if not isinstance(data, six.string_types):
         raise ValidationError("%s is not a char." % data)
 
 
@@ -1214,7 +1239,7 @@ def validate_decimal(data):
 def validate_filepath(data):
     """A the moment,
     this just checks that it is a string."""
-    if not isinstance(data, basestring):
+    if not isinstance(data, six.string_types):
         raise ValidationError("Not a filepath.")
 
 
@@ -1235,7 +1260,7 @@ def validate_integer(value):
 def validate_nullboolean(data):
     """If the data is True or False or None."""
     if not isinstance(data, bool):
-        if not isinstance(data, types.NoneType):
+        if not isinstance(data, type(None)):
             raise ValidationError("Not a nullboolean.")
 
 
@@ -1279,7 +1304,7 @@ def validate_positivesmallinteger(data):
 
 def validate_text(data):
     """Text of unlimited size."""
-    if not isinstance(data, basestring):
+    if not isinstance(data, six.string_types):
         raise ValidationError("Not a char.")
 
 
@@ -1480,7 +1505,7 @@ DISPATCHER = (
     ('IP4Address', validate_ipv4_address),
     ('IP6Address', validate_ipv6_address),
     ('List', validate_list),
-    ('LongInteger', validate_long),
+    #('LongInteger', validate_long),
     ('NullBoolean', validate_nullboolean),
     ('PositiveInteger', validate_postiveinteger),
     ('PositiveSmallInteger', validate_positivesmallinteger),

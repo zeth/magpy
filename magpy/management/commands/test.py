@@ -1,4 +1,5 @@
 """A test runner."""
+from __future__ import print_function
 
 import os
 import sys
@@ -70,7 +71,7 @@ class Command(BaseCommand):
                 try:
                     unittests, doctests = self.get_tests(app)
                 except TypeError:
-                    print "No test directory in", app
+                    print("No test directory in", app)
                     unittests = doctests = None
                 if unittests:
                     suite.addTest(unittests)

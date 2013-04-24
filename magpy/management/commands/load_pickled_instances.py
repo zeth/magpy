@@ -1,4 +1,5 @@
 """Add a pickle file of instances to the database."""
+from __future__ import print_function
 
 import pickle
 from magpy.management import BaseCommand, CommandError
@@ -9,13 +10,13 @@ class Command(BaseCommand):
     help = ('Add a pickle file of instances to the database.')
 
     def handle(self, *args, **kwargs):
-        print args
+        print(args)
         database = Database()
         pkl_file = open(args[0], 'rb')
         instances = pickle.load(pkl_file)
         collection = database.get_collection(args[1])
         for instance in instances:
             collection.insert(instance)
-            print "Added", instance['_id']
+            print("Added", instance['_id'])
 
         pkl_file.close()

@@ -1,4 +1,5 @@
 """REST service, used via JavaScript API or directly."""
+from __future__ import print_function
 
 from datetime import datetime
 from copy import deepcopy
@@ -14,6 +15,7 @@ from magpy.server.auth import AuthenticationMixin, WhoAmIMixin, \
     permission_required
 from magpy.server.database import DatabaseMixin, ValidationMixin
 from magpy.server.utils import dejsonify, instance_list_to_dict
+import six
 
 
 class ResourceTypeHandler(tornado.web.RequestHandler,
@@ -60,7 +62,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
     def _do_multiple_delete(self, response, error=None,
                             ids=None, resource=None):
         """Delete the instances named in ids."""
-        print "Superdif", ids
+        print("Superdif", ids)
 
         callback = partial(self._delete_success,
                            ids=ids,
@@ -102,7 +104,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         else:
             modifiers = {'$set': {}}
 
-        for field, value in fields.iteritems():
+        for field, value in six.iteritems(fields):
             if field.startswith('$'):
                 modifiers[field] = value
             else:
@@ -474,12 +476,12 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         arguments = self.request.arguments
         if arguments:
             query = dict((key, value[0]) for \
-                             key, value in arguments.iteritems())
+                             key, value in six.iteritems(arguments))
             if '_limit' in query:
                 try:
                     kwargs['limit'] = int(dejsonify(query['_limit']))
                 except ValueError:
-                    print "Warning: Invalid _limit parameter."
+                    print("Warning: Invalid _limit parameter.")
                 del query['_limit']
 
             if '_sort' in query:
@@ -490,18 +492,22 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                 try:
                     kwargs['skip'] = int(dejsonify(query['_skip']))
                 except ValueError:
-                    print "Warning: Invalid _skip parameter."
+                    print("Warning: Invalid _skip parameter.")
                 del query['_skip']
 
             if '_count' in query:
                 count = dejsonify(query['_count'])
                 del query['_count']
 
+            if '_fields' in query:
+                kwargs['fields'] = dejsonify(query['_fields'])
+                del query['_fields']
+
             if query:
                 # Decode any decoded values
                 kwargs['spec'] = {}
 
-                for key, value in query.iteritems():
+                for key, value in six.iteritems(query):
                     kwargs['spec'][key] = dejsonify(value)
 
         if count == "true":
@@ -562,7 +568,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         """Validate an instance against a model."""
         try:
             validate_model_instance(model, instance)
-        except MissingFields, fields:
+        except MissingFields as fields:
             raise tornado.web.HTTPError(400, "Missing Fields %s" % fields)
         except ValidationError:
             raise tornado.web.HTTPError(400, "Validation Error")
@@ -671,9 +677,9 @@ class CommandHandler(tornado.web.RequestHandler,
             try:
                 suffix = target_id.split(objectid)[1]
             except IndexError:
-                raise ValueError, "Invalid %s is not a substring of %s" % (
+                raise ValueError("Invalid %s is not a substring of %s" % (
                     target_id,
-                    objectid)
+                    objectid))
             if suffix:
                 if suffix[0] == '_' and suffix.count('_') == 1:
                     try:
@@ -724,7 +730,7 @@ class ResourceHandler(tornado.web.RequestHandler,
     @tornado.web.asynchronous
     def old_get(self, resource, objectid):
         """Get a single instance."""
-        print "User is", self.get_secure_cookie("user")
+        print("User is", self.get_secure_cookie("user"))
         coll = self.get_collection(resource)
         coll.find_one({'_id': objectid},
                       callback=self.return_instance)

@@ -1,19 +1,21 @@
 """Database access."""
 
+from __future__ import print_function
+
 from copy import deepcopy
 from functools import partial
 
 import tornado.web
 from bson.objectid import ObjectId
 from pymongo import Connection
+from pymongo.errors import ConnectionFailure
 
 from magpy.server.utils import instance_list_to_dict
 from magpy.server.validators import validate_model_instance, \
     ValidationError, MissingFields, parse_instance, validate_modification, \
     get_all_modification_modelnames
 
-from magpy.server.utils import instance_list_to_dict
-from pymongo.errors import ConnectionFailure
+from magpy.server.config import MagpyConfigParser
 
 try:
     from settings import DEFAULT_DATABASE
@@ -29,22 +31,25 @@ except:
 class Database(object):
     """Simple database connection for use in serverside scripts etc."""
     def __init__(self,
-                 async=False,
-                 database_name=None):
+                 database_name=None,
+                 config_file=None):
         try:
             self.connection = Connection(tz_aware=True)
         except ConnectionFailure:
-            print "Could not connect to MongoDB database."
-            print "Are you sure it is installed and is running?"
-            print "The exception is shown below."
-            print ""
+            print("Could not connect to MongoDB database.")
+            print("Are you sure it is installed and is running?")
+            print("The exception is shown below.")
+            print("")
 
             raise
-        if not database_name:
-            database_name = DEFAULT_DATABASE
 
-        self.database = self.connection[database_name]
+        self.config = MagpyConfigParser(config_file)
+
+        if not database_name:
+            database_name = self.config.databases['default']['NAME']
+
         self._database_name = database_name
+        self.database = self.connection[database_name]
 
     def drop_database(self):
         """Drop the whole database."""
@@ -54,6 +59,15 @@ class Database(object):
     def get_collection(self, collection):
         """Get a collection by name."""
         return self.database[collection]
+
+    def drop_collection(self, collection):
+        """Drop a collection by name."""
+        self.database.drop_collection(collection)
+
+    def drop_collections(self, collections):
+        """Drop a named tuple or list of collections."""
+        for collection in collections:
+            self.drop_collection(collection)
 
     def get_setting_category(self, category):
         """Get a setting category from the database."""
@@ -77,7 +91,7 @@ class Database(object):
             category_instance[setting] = value
         else:
             category_instance = {'_id': category,
-                        setting: value}
+                                 setting: value}
         settings = self.get_collection('_settings')
         settings.save(category_instance)
 
@@ -110,7 +124,7 @@ class Database(object):
             settings = self.get_collection('_settings')
             settings.save(category_instance)
         else:
-            print "Already set, skipping."
+            print("Already set, skipping.")
 
     def remove_list_setting(self, category, setting, value):
         """Add a value to a list setting."""
@@ -162,8 +176,9 @@ class DatabaseMixin(object):
             if self.request.headers['X-UnitTest'] == 'True':
                 self._database_name = TEST_DATABASE
                 return TEST_DATABASE
-        self._database_name = DEFAULT_DATABASE
-        return DEFAULT_DATABASE
+        default_database = self.application.databases['default']['NAME']
+        self._database_name = default_database
+        return default_database
 
     @property
     def database(self):
@@ -196,7 +211,7 @@ class DatabaseMixin(object):
                        instance,
                        operation,
                        success,
-                       versional_comment = None):
+                       versional_comment=None):
         """Add version or versions to history."""
 
         if isinstance(instance, dict):
@@ -218,8 +233,8 @@ class ValidationMixin(object):
         """Validate an instance."""
         callback = partial(
             self._do_validate,
-            instance = instance,
-            success = success)
+            instance=instance,
+            success=success)
         self._request_model(instance, callback)
 
     def _old_request_model(self, instance, success):
@@ -238,39 +253,41 @@ class ValidationMixin(object):
 #    def validate_modifier(self, model_name, error,
 #                          modifier, success):
     def validate_modifier(self, model_name,
-                          error = None,
-                          modifier = None, success = None):
+                          error=None,
+                          modifier=None,
+                          success=None):
         """Validate a modification."""
         # start by getting the model
 
         callback = partial(self._get_embedded_modifier_models,
-                           model_name = model_name,
-                           modifier = modifier,
-                           success = success)
+                           model_name=model_name,
+                           modifier=modifier,
+                           success=success)
 
         self.get_model(model_name,
-                       callback = callback)
+                       callback=callback)
 
     def _get_embedded_modifier_models(self, model,
-                                      error = None,
-                                      model_name = None,
-                                      modifier = None,
-                                      success = None):
+                                      error=None,
+                                      model_name=None,
+                                      modifier=None,
+                                      success=None):
         """Validate a modification."""
         embedded_model_names, \
-            unknown_names = get_all_modification_modelnames(
-            model, modifier)
+            unknown_names = \
+            get_all_modification_modelnames(model,
+                                            modifier)
         model_names = deepcopy(embedded_model_names)
         model_names.append(model_name)
         model_names.extend(unknown_names)
 
         callback = partial(
             self._validate_modifier,
-            model_name = model_name,
-            modifier = modifier,
-            embedded_model_names = embedded_model_names,
-            unknown_names = unknown_names,
-            success = success)
+            model_name=model_name,
+            modifier=modifier,
+            embedded_model_names=embedded_model_names,
+            unknown_names=unknown_names,
+            success=success)
         self.get_models(model_names,
                         callback=callback)
 
@@ -290,8 +307,7 @@ class ValidationMixin(object):
                               embedded_models=embedded_models,
                               callback=success)
 
-
-    def _request_model(self, instance, success, get_embedded = True):
+    def _request_model(self, instance, success, get_embedded=True):
         """Get the model from the database."""
         coll = self.get_collection('_model')
         if get_embedded:
@@ -337,8 +353,10 @@ class ValidationMixin(object):
                                          embedded_model_names)
 
     def _get_embedded_models(self,
-                            model, instance, success,
-                            model_names):
+                             model,
+                             instance,
+                             success,
+                             model_names):
         """Get the models from the model_names."""
 
         callback = partial(self._handle_embedded_models,
@@ -369,11 +387,12 @@ class ValidationMixin(object):
             validate_model_instance(model,
                                     instance,
                                     embedded_models=embedded_models)
-        except MissingFields, fields:
+        except MissingFields as fields:
             raise tornado.web.HTTPError(400, "Missing Fields %s" % fields)
         except ValidationError:
             raise tornado.web.HTTPError(400, "Validation Error")
         success(instance)
+
 
 def create_version(instance,
                    operation,
@@ -390,11 +409,10 @@ def create_version(instance,
         'document_model': instance['_model'],
         'document': instance,
         'comment': versional_comment,
-        'operation': operation
-        }
+        'operation': operation}
 
 
 def create_versions(instances, operation, versional_comment):
     """Create a version dictionaries for a list of instances."""
-    return [create_version(instance, operation, versional_comment) \
-                for instance in instances]
+    return [create_version(instance, operation, versional_comment)
+            for instance in instances]

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """Tests for validators.py."""
 
+import six
+
 import re
 import datetime
 from decimal import Decimal
 from unittest import TestCase, main
-
 
 from magpy.server.validators import validate_integer, ValidationError, \
     validate_email, validate_slug, validate_ipv4_address, \
@@ -17,11 +18,13 @@ from magpy.server.validators import validate_integer, ValidationError, \
     validate_model_instance, parse_instance, validate_list, \
     validate_embedded_list, validate_xml, smart_unicode, smart_str, \
     WrappedUnicodeDecodeError, is_valid_ipv6_address, clean_ipv6_address, \
-    validate_long, validate_char, validate_date, validate_datetime, \
+    validate_char, validate_date, validate_datetime, \
     validate_float, validate_nullboolean, validate_postiveinteger, \
     validate_smallinteger, validate_biginteger, \
     validate_positivesmallinteger, validate_text, validate_time, \
     validate_bool, validate_decimal, validate_modification, ValidationError
+    # validate_long
+
 
 # pylint: disable=R0904,R0903,W0232
 
@@ -35,17 +38,29 @@ class TestSimpleValidators(TestCase):
     def test_single_message(self):
         """Test the error message."""
         validity = ValidationError('Not Valid')
-        self.assertEqual(str(validity), "[u'Not Valid']")
-        self.assertEqual(repr(validity), "ValidationError([u'Not Valid'])")
+        if six.PY3:
+            self.assertEqual(str(validity), "['Not Valid']")
+            self.assertEqual(repr(validity), "ValidationError(['Not Valid'])")
+        else:
+            self.assertEqual(str(validity), "[u'Not Valid']")
+            self.assertEqual(repr(validity), "ValidationError([u'Not Valid'])")
 
     def test_message_list(self):
         """Test a list of messages."""
         validity = ValidationError(['First Problem', 'Second Problem'])
-        self.assertEqual(str(validity),
-                         "[u'First Problem', u'Second Problem']")
-        self.assertEqual(
-            repr(validity),
-            "ValidationError([u'First Problem', u'Second Problem'])")
+        if six.PY3:
+            self.assertEqual(str(validity),
+                             "['First Problem', 'Second Problem']")
+            self.assertEqual(
+                repr(validity),
+                "ValidationError(['First Problem', 'Second Problem'])")
+
+        else:
+            self.assertEqual(str(validity),
+                             "[u'First Problem', u'Second Problem']")
+            self.assertEqual(
+                repr(validity),
+                "ValidationError([u'First Problem', u'Second Problem'])")
 
     def test_message_dict(self):
         """Test the message dict."""
@@ -84,32 +99,39 @@ class TestSimpleValidators(TestCase):
         self.assertRaises(
             WrappedUnicodeDecodeError,
             smart_unicode,
-            '\xff\xfeS0\n\x00'
+            b'\xff\xfeS0\n\x00'
             )
         self.assertEqual(
-            smart_unicode(Exception(u'Ryökäle')), u'Ry\xf6k\xe4le')
+            smart_unicode(Exception('Ryökäle')), u'Ry\xf6k\xe4le')
 
+        # Do I need this test?
         self.assertRaises(
             WrappedUnicodeDecodeError,
             smart_unicode,
-            Exception('\xff\xfeS0\n\x00')
-            )
+            Exception('\xff\xfeS0\n\x00'))
 
     def test_smart_str(self):
         """Test the smart_str function."""
+        if six.PY3:
+            first_result = b'\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
+            second_result = b'Ry\xc3\xb6k\xc3\xa4le'
+            third_result = b'\xd0\x91'
+        else:
+            first_result = '\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
+            second_result = 'Ry\xc3\xb6k\xc3\xa4le'
+            third_result = '\xd0\x91'
+
         self.assertEqual(
             smart_str('ŠĐĆŽćžšđ'),
-            '\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
-            )
+            first_result)
         self.assertEqual(
             smart_str(u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111'),
-            '\xc5\xa0\xc4\x90\xc4\x86\xc5\xbd\xc4\x87\xc5\xbe\xc5\xa1\xc4\x91'
-            )
+            first_result)
 
         self.assertEqual(
-            smart_str(Exception(u'Ryökäle')), 'Ry\xc3\xb6k\xc3\xa4le')
+            smart_str(Exception(u'Ryökäle')), second_result)
 
-        self.assertEqual(smart_str(u"\u0411"), '\xd0\x91')
+        self.assertEqual(smart_str(u"\u0411"), third_result)
         self.assertEqual(smart_str(1), '1')
         self.assertEqual(smart_str(1, strings_only=True), 1)
 
@@ -206,9 +228,9 @@ class TestSimpleValidators(TestCase):
         self.assertEqual(validate_xml('<p>Hello World</p>'), None)
         self.assertRaises(ValidationError, validate_xml, '<p></td>')
 
-    def test_validate_long(self):
-        self.assertEqual(validate_long(100), None)
-        self.assertRaises(ValidationError, validate_long, "I am a string")
+    #def test_validate_long(self):
+    #    self.assertEqual(validate_long(100), None)
+    #    self.assertRaises(ValidationError, validate_long, "I am a string")
 
     def test_validate_char(self):
         self.assertEqual(validate_char("Hello World"), None)

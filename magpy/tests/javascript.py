@@ -22,20 +22,19 @@ Like all good software, this library is written like an onion,
 keeping peeling off the layers until you find the right level of
 abstraction for your need.
 """
+from __future__ import print_function
 
+import os
 import sys
 import traceback
 import cmd
 import unittest
+
 import PyV8
 
-STATIC_LOCATION = '/srv/vmr/web/static/'
-FRONTEND_LOCATION = STATIC_LOCATION + 'frontend/js/'
+from magpy.server.utils import get_mag_path
 
-DEFAULT_SPECIALS = {
-    "raven": FRONTEND_LOCATION + 'raven.js',
-    "domcore": "/srv/vmr/raven/tests/domcore.js"
-    }
+
 
 
 class JavaScriptTestCase(unittest.TestCase):  # pylint: disable=R0904
@@ -122,7 +121,10 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
             self.specials = kwargs['specials']
             del kwargs['specials']
         else:
-            self.specials = DEFAULT_SPECIALS
+            magpy_path = get_mag_path()
+            self.specials = {
+                "raven": os.path.join(magpy_path, 'static/js/mag.js'),
+                "domcore": os.path.join(magpy_path, 'tests/js/domcore.js')}
 
         cmd.Cmd.__init__(self, *args, **kwargs)
         self.count = 1
@@ -142,9 +144,9 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
         try:
             self.session.load_file(line)
         except IOError:
-            print sys.exc_info()[1]
+            print(sys.exc_info()[1])
         except:
-            print traceback.format_exc()
+            print(traceback.format_exc())
 
     def do_special(self, line):
         """Load a file from existing file list."""
@@ -152,15 +154,15 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
             special = self.specials[line]
 
         except KeyError:
-            print "Does Not Exist"
-            print "Today's specials are:"
-            print ', '.join(self.specials.keys())
+            print("Does Not Exist")
+            print("Today's specials are:")
+            print(', '.join(self.specials.keys()))
 
         else:
             self.do_load(special)
 
     def postloop(self):
-        print
+        print()
 
     def do_prompt(self, line):
         "Change the interactive prompt"
@@ -173,14 +175,17 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
 
     def default(self, line):
         try:
-            print self.session.context.eval(line)
+            print(self.session.context.eval(line))
         except:
-            print traceback.format_exc()  # pylint: disable=W0702
+            print(traceback.format_exc())  # pylint: disable=W0702
 
 ### Fake web browser objects ###
 
-from urllib2 import Request, urlopen
-
+try:
+    # Python 2
+    from urllib2 import Request, urlopen
+except:
+    from urllib.request import Request, urlopen
 
 class RequestWithMethod(Request):
     """Subclass Request to allow PUT, DELETE and HEAD
@@ -336,9 +341,9 @@ class Console(object):
         """Write a message or an object to the console."""
         obj = convert(lobject)
         if lobject != obj:
-            print lobject, obj
+            print(lobject, obj)
         else:
-            print lobject
+            print(lobject)
 
     @staticmethod
     def dir(lobject):
@@ -352,7 +357,7 @@ class Console(object):
         For now, this is mostly useful for helping to understand
         the abstraction, for example, when writing unit tests.
         """
-        print dir(lobject)
+        print(dir(lobject))
 
 COMPAT = """
 //** Make the serverside environment suitable for testing client side code. */

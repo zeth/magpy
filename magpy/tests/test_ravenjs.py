@@ -1,14 +1,19 @@
 """Tests for Magpy."""
+from __future__ import print_function
 
+import six
+
+import os
 import time
 import unittest
 import json
-from javascript import JavaScriptTestCase
+
 from pymongo import Connection
+
 from magpy.server.instances import InstanceLoader
 from magpy.server.database import Database
-
-RAVEN = "/srv/vmr/web/static/frontend/js/raven.js"
+from magpy.server.utils import get_mag_path
+from magpy.tests.javascript import JavaScriptTestCase
 
 # pylint: disable=R0904
 
@@ -17,7 +22,8 @@ class RavenTestCase(JavaScriptTestCase):
     """Load the Raven file into the session."""
     def setUp(self):  # pylint: disable=C0103
         super(RavenTestCase, self).setUp()
-        self.load(RAVEN)
+        magjs = os.path.join(get_mag_path(), 'static/js/mag.js')
+        self.load(magjs)
         self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
 
 
@@ -419,9 +425,9 @@ class RavenRestTestCase(RavenTestCase):
         if not delay:
             delay = self._delay
 
-        print "%s sec delay to give the database time . . ." % delay,
+        print("%s sec delay to give the database time . . ." % delay, end=' ')
         time.sleep(delay)
-        print ". . now we continue"
+        print(". . now we continue")
 
     def test_create_resource(self):
         """Test create_resource."""
@@ -756,7 +762,7 @@ class TestEmbedModificationValidation(RavenTestCase):
         instance_loader = InstanceLoader(
             database='test',
             validation=False)
-        instance_loader.add_instances(EMBEDDED_MODELS.itervalues())
+        instance_loader.add_instances(six.itervalues(EMBEDDED_MODELS))
         # Kill any test existing instances
         database = Database(database_name='test')
         self.collection = database.get_collection('article')
@@ -879,7 +885,7 @@ class TestEmbedModificationValidationB(RavenTestCase):
         instance_loader = InstanceLoader(
             database='test',
             validation=False)
-        instance_loader.add_instances(EMBEDDED_MODELS_B.itervalues())
+        instance_loader.add_instances(six.itervalues(EMBEDDED_MODELS_B))
         # Kill any test existing instances
         database = Database(database_name='test')
         self.collection = database.get_collection('article')
