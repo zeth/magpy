@@ -1,4 +1,4 @@
-"""Database access."""
+B"""Database access."""
 
 from __future__ import print_function
 
@@ -15,8 +15,15 @@ from magpy.server.validators import validate_model_instance, \
 
 from magpy.server.config import MagpyConfigParser
 
-DEFAULT_DATABASE = 'vmr'
-TEST_DATABASE = 'test'
+try:
+    from settings import DEFAULT_DATABASE
+except:
+    DEFAULT_DATABASE = None
+
+try:
+    from settings import TEST_DATABASE
+except:
+    TEST_DATABASE = 'test'
 
 
 class Database(object):
@@ -56,7 +63,12 @@ class Database(object):
 
         # Get the database
         if not database_name:
-            database_name = self.config.databases['default']['NAME']
+
+            if DEFAULT_DATABASE:
+                database_name = DEFAULT_DATABASE
+            else:
+                database_name = self.config.databases['default']['NAME']
+
         self._database_name = database_name
         self.database = self.connection[database_name]
 
