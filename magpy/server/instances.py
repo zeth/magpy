@@ -1,7 +1,10 @@
 """Load an instance on the server side."""
+# TODO: this doesn't really use the multiple database support correctly
+# TODO: get rid of this module altoghether, merge into database.Database
 
 from __future__ import print_function
 
+from magpy.server.database import Database
 from magpy.server.validators import validate_model_instance, ValidationError
 import sys
 
@@ -17,13 +20,15 @@ class InstanceLoader(object):
         """Startup the loader."""
         self.handle_none = handle_none
         self.validation = validation
+        database_type = None
         if embedded:
-            from magpy.server._ejdb import Database
+            database_type = 'ainodb'
         else:
-            from magpy.server.database import Database
+            database_type = None
 
         self.database = Database(
-            database_name=database)
+            database_name=database,
+            database_type=database_type)
 
     def add_instance(self, instance):
         """Add instance to the db."""

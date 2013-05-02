@@ -7,8 +7,6 @@ from functools import partial
 
 import tornado.web
 from bson.objectid import ObjectId
-from pymongo import Connection
-from pymongo.errors import ConnectionFailure
 
 from magpy.server.utils import instance_list_to_dict
 from magpy.server.validators import validate_model_instance, \
@@ -25,22 +23,40 @@ class Database(object):
     """Simple database connection for use in serverside scripts etc."""
     def __init__(self,
                  database_name=None,
-                 config_file=None):
+                 config_file=None,
+                 database_type=None):
+        # Get the configuration
+        self.config = MagpyConfigParser(config_file)
+
+        # Get the database engine type
+        if not database_type:
+            database_type = self.config.databases['default']['ENGINE']
+
+        # Get the client class
+        if database_type == 'ainodb':
+            from ainodb import Client
+            from ainodb.errors import ConnectionFailure
+        else:
+            try:
+                from pymongo import MongoClient as Client
+            except ImportError:
+                from pymongo import Connection as Client
+            from pymongo.errors import ConnectionFailure
+
+        # Make a connection
         try:
-            self.connection = Connection(tz_aware=True)
+            self.connection = Client(tz_aware=True)
         except ConnectionFailure:
-            print("Could not connect to MongoDB database.")
+            print("Could not connect to the database.")
             print("Are you sure it is installed and is running?")
             print("The exception is shown below.")
             print("")
 
             raise
 
-        self.config = MagpyConfigParser(config_file)
-
+        # Get the database
         if not database_name:
             database_name = self.config.databases['default']['NAME']
-
         self._database_name = database_name
         self.database = self.connection[database_name]
 
