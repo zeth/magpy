@@ -43,9 +43,7 @@ var SYNC = (function () {
                 if (state.state.hasOwnProperty(resource_type)) {
                     if (db.objectStoreNames.contains(resource_type)) {
                         info.present[info.present.length] = resource_type;
-                        console.log("Has: " + resource_type);
                     } else {
-                        console.log("Missing: " + resource_type);
                         info.missing[info.missing.length] = resource_type;
                     }
                 }
@@ -64,7 +62,6 @@ var SYNC = (function () {
         initial: function () {
             var info, callback, success;
             success = function(whatever) {
-                console.log('point A');
                 console.log(whatever);
             };
 
