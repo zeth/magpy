@@ -9,14 +9,15 @@ from magpy.server.transactions import TransactionSyncHandler, \
     TransactionUpdateHandler
 
 URLS = [
+    (r"/api/_sync/state/(\w+)/?", TransactionSyncHandler),
+    (r"/api/_sync/update/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?", TransactionUpdateHandler),
     (r"/api/(\w+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?", CommandHandler),
     (r"/api/(\w+)/([a-zA-Z0-9_-]+)/?", ResourceHandler),
     (r"/api/(\w+)/?", ResourceTypeHandler),
+
     (r"/auth/login/", AuthLoginHandler),
     (r"/auth/logout/", AuthLogoutHandler),
     (r"/auth/whoami/", AuthWhoAmIHandler),
     (r"/auth/checkpermission/(\w+)/([a-zA-Z0-9_-]+)/?", AuthPermissionHandler),
     (r"/auth/checkpermission/?", AuthPermissionsHandler),
-    (r"/_sync/state/(\w+)/?", TransactionSyncHandler),
-    (r"/_sync/update/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?", TransactionUpdateHandler),
     ]

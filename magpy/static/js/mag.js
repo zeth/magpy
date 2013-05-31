@@ -1,5 +1,5 @@
 /*global window, document, localStorage, XMLHttpRequest, Element,
-  ActiveXObject, SITE_DOMAIN:true */
+  ActiveXObject, SITE_DOMAIN:true, APP_NAME:true*/
 /*jslint nomen: true*/
 
 /**
@@ -20,6 +20,10 @@ if (typeof SITE_DOMAIN === 'undefined') {
 
 if (typeof APP_NAME === 'undefined') {
     APP_NAME = window.location.pathname.split('/')[1];
+}
+
+if (typeof LOCAL_DB_NAME === 'undefined') {
+    LOCAL_DB_NAME = 'mag';
 }
 
 /** Array.indexOf for IE before IE9 */
