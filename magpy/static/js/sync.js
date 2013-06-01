@@ -61,8 +61,8 @@ var SYNC = (function () {
 
         initial: function () {
             var info, callback, success;
-            success = function(whatever) {
-                console.log(whatever);
+            success = function(info) {
+                SYNC.create_missing_object_stores(info);
             };
 
             callback = function(state) {
@@ -78,6 +78,72 @@ var SYNC = (function () {
                 db = request.result;
             };
             return db
+        },
+
+        create_missing_object_stores: function(info) {
+            var new_version, open_request, resource_type;
+            new_version = info.version + 1;
+            open_request = indexedDB.open(LOCAL_DB_NAME, new_version);
+            open_request.onupgradeneeded = function(e) {
+                var db, object_store, resource_type, i, length;
+                db = e.target.result;
+                length = info.missing.length;
+                for (i = 0; i < length; i += 1) {
+                    resource_type = info.missing[i];
+                    console.log('Missing object store: ' + resource_type);
+                    object_store = db.createObjectStore(
+                        resource_type, { keyPath: "_id" });
+                    console.log('Created object store for: ' + resource_type);                
+                }
+            }
+            console.log('Done.');
+        },
+
+        populate_instances: function (instances, resource) {
+            var open_request;
+            open_request = indexedDB.open(LOCAL_DB_NAME);
+            open_request.onsuccess = function(e) {
+                var length, i, transaction, object_store, add_request;
+                console.log('hello halo2');
+                db = e.target.result;
+                var transaction = db.transaction([resource], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                    alert("All done!");
+                };
+ 
+                transaction.onerror = function(event) {
+                    // Don't forget to handle errors!
+                    alert("Error!");
+                };
+ 
+                object_store = transaction.objectStore(resource);
+
+                length = instances.length;
+                for (i = 0; i < length; i += 1) {
+                    add_request = object_store.add(instances[i]);
+                    add_request.onsuccess = function(event) {
+                        console.log('.');
+                    };
+                }
+            };
+            open_request.onerror = function(event) {
+                alert("Database error: " + event.target.errorCode);
+                console.log("Database error: " + event.target.errorCode);
+            };
+        },
+
+        get_all_instances: function (resource) {
+            var base_url, url, options, success;
+            success = function(results) {
+                SYNC.populate_instances(results.results, resource);
+            }
+            options = {success:success}
+            base_url = MAG._STORAGE.get_data_from_storage_or_function(
+                "MAG._REST.get_api_url"
+            );
+            url = base_url + resource + '/';
+            MAG._REQUEST.request(url, options);
         },
 
         // End of module SYNC

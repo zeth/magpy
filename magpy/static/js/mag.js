@@ -486,8 +486,8 @@ var MAG = (function () {
                         }
                         options.success = function (data) {
                             MAG._REST.cache_api_list(data,
-                                                       resource,
-                                                       criteria);
+                                                     resource,
+                                                     criteria);
                         };
                     } else {
                         if (
@@ -504,8 +504,8 @@ var MAG = (function () {
                         callback = options.success;
                         options.success = function (data) {
                             MAG._REST.cache_api_list(data,
-                                                       resource,
-                                                       criteria);
+                                                     resource,
+                                                     criteria);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
