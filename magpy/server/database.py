@@ -425,7 +425,8 @@ def create_version(instance,
         versional_comment = "Instance %sd" % operation
 
     return {
-        '_id': str(ObjectId()),
+        #'_id': str(ObjectId()),
+        #'_id': ObjectId(),
         'document_id': instance['_id'],
         'document_model': instance['_model'],
         'document': instance,
