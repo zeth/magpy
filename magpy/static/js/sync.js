@@ -37,8 +37,17 @@ var SYNC = (function () {
             db = e.target.result;
             info = {version: db.version,
                     present: [],
-                    missing: []}
+                    missing: [],
+                    state: state.state}
 
+            // Check for meta
+            if (db.objectStoreNames.contains('_meta')) {
+                info._meta = 1;
+            } else {
+                info._meta = 0;
+            }
+
+            // Check for resources
             for (resource_type in state.state) {
                 if (state.state.hasOwnProperty(resource_type)) {
                     if (db.objectStoreNames.contains(resource_type)) {
@@ -72,6 +81,48 @@ var SYNC = (function () {
             return "OK";
         },
 
+        update_meta_states: function (info) {
+            console.log('hello zeth 123.');
+            var db;
+            var request = indexedDB.open(LOCAL_DB_NAME);
+            request.onerror = function(event) {
+                alert("Why didn't you allow my web app to use IndexedDB?!");
+            };
+            request.onsuccess = function(event) {
+                db = request.result;
+                var transaction = db.transaction(["_meta"], "readwrite");
+                var object_store = transaction.objectStore("_meta");
+                transaction.oncomplete = function(event) {
+                    console.log("Meta transaction complete.");
+                };
+                var store_request = object_store.get("state");
+                store_request.onerror = function(event) {
+                    // Handle errors!
+                    console.log("Could not find if state exists or not.");
+                };
+                store_request.onsuccess = function(event) {
+                    var state, resource;
+                    // Do something with the request.result!
+                    if (typeof store_request.result == "undefined") {
+                        state = {'_id': 'state'}
+                    } else {
+                        state = store_request.result;
+                    }
+                    for (resource in info.state) {
+                        if (info.state.hasOwnProperty(resource)) {
+                            state[resource] = info.state[resource];
+                        }
+                    };
+                    var update_request = object_store.put(state)
+                    update_request.onsuccess = function(event) {
+                        console.log('Meta State updated.');
+                    };
+
+                };
+            };
+
+        },
+
         do_stuff: function () {
             var request = indexedDB.open("library");
             request.onsuccess = function() {
@@ -87,6 +138,15 @@ var SYNC = (function () {
             open_request.onupgradeneeded = function(e) {
                 var db, object_store, resource_type, i, length;
                 db = e.target.result;
+                // Create meta store if needed
+                if (info._meta == 0) {
+                    console.log('Missing _meta object store.');
+                    object_store = db.createObjectStore(
+                        '_meta', { keyPath: "_id" });
+                    console.log('Created _meta object store.');
+                }
+
+                // Create resource stores
                 length = info.missing.length;
                 for (i = 0; i < length; i += 1) {
                     resource_type = info.missing[i];
@@ -98,6 +158,7 @@ var SYNC = (function () {
                 }
             }
             console.log('Done.');
+            SYNC.update_meta_states(info);
         },
 
         populate_instances: function (instances, resource) {
