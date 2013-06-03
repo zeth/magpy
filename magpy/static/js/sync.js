@@ -136,21 +136,36 @@ var SYNC = (function () {
             var open_request;
             open_request = indexedDB.open(LOCAL_DB_NAME);
             open_request.onsuccess = function(event) {
-                var db, resource_type, i, length, transaction;
+                var db, store_names;
                 db = event.target.result;
-                // Update resource stores that already exist
-                length = info.present.length;
-                for (i = 0; i < length; i += 1) {
-                    resource_type = info.present[i];
-                    console.log("Check for update: " + resource_type);
-                    transaction = db.transaction([resource_type], "readwrite");
-                    transaction.oncomplete = function(event) {
-                        console.log('Updated: ' + resource_type);
-                    };
-                    transaction.onerror = function(event) {
-                        console.log('Problems updating: ' + resource_type);
-                    };
-
+                store_names = ['_meta'].concat(info.present);
+                console.log(store_names);
+                var meta_transaction = db.transaction(store_names);
+                meta_transaction.oncomplete = function(event) {
+                    console.log('Meta transaction complete');
+                }
+                var meta_store = meta_transaction.objectStore("_meta");
+                var meta_request = meta_store.get("state");
+                meta_request.onerror = function(event) {
+                    // Handle errors!
+                    console.log("Couldn't find status");
+                };
+                meta_request.onsuccess = function(event) {
+                    var i, length, transaction, resource_type, state, old_state, new_state;
+                    // Update resource stores that already exist
+                    state = event.target.result;
+                    length = info.present.length;
+                    for (i = 0; i < length; i += 1) {
+                        resource_type = info.present[i];
+                        old_state = state[resource_type]
+                        new_state = info.state[resource_type]
+                        if (old_state == new_state) {
+                            console.log(resource_type + " is up to date.");
+                        } else {
+                            console.log(resource_type + " needs to be updated.");
+                        }
+                        
+                    }
                 }
             }
         },
