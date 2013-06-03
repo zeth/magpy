@@ -247,6 +247,22 @@ var SYNC = (function () {
             MAG._REQUEST.request(url, options);
         },
 
+        get_update: function (resource, objectid, options) {
+            var base_url, url, options, success;
+            if (typeof options === "undefined") {
+                options = {
+                    success: function (thing) {console.log(thing);}
+                };
+            }
+            base_url = MAG._STORAGE.get_data_from_storage_or_function(
+                "MAG._REST.get_api_url"
+            );
+            url = base_url + '_sync/update/' + resource + '/' + objectid + '/';
+            console.log("url is " + url);
+            MAG._REQUEST.request(url, options);
+        },
+
+
         // End of module SYNC
     };
 }());
