@@ -83,7 +83,6 @@ var SYNC = (function () {
         },
 
         update_meta_states: function (info) {
-            console.log('hello zeth 123.');
             var db;
             var request = indexedDB.open(LOCAL_DB_NAME);
             request.onerror = function(event) {
@@ -124,14 +123,6 @@ var SYNC = (function () {
 
         },
 
-        do_stuff: function () {
-            var request = indexedDB.open("library");
-            request.onsuccess = function() {
-                db = request.result;
-            };
-            return db
-        },
-
         update_existing_object_stores: function(info) {
             var open_request;
             open_request = indexedDB.open(LOCAL_DB_NAME);
@@ -139,7 +130,6 @@ var SYNC = (function () {
                 var db, store_names;
                 db = event.target.result;
                 store_names = ['_meta'].concat(info.present);
-                console.log(store_names);
                 var meta_transaction = db.transaction(store_names);
                 meta_transaction.oncomplete = function(event) {
                     console.log('Meta transaction complete');
@@ -170,6 +160,58 @@ var SYNC = (function () {
             }
         },
 
+        do_update_store: function(items, resource) {
+            var open_db_request, object_store, up_transaction, item;
+            open_db_request = indexedDB.open(LOCAL_DB_NAME);
+            open_request.onsuccess = function(event) {
+                var db, i, length;
+                db = event.target.result;
+                var transaction = db.transaction([resource], "readwrite");
+                up_transaction.oncomplete = function(event) {
+                    console.log('Up transaction complete');
+                };
+                up_transaction.onerror = function(event) {
+                    // Don't forget to handle errors!
+                    console.log("Up transaction error!");
+                };
+                object_store = up_transaction.objectStore(resource);
+                // Main loop!
+                length = items.length;
+                for (i = 0; i < length; i += 1) {
+                    item = items[i];
+                    switch (item.operation) {
+                        case "create":
+                            SYNC.add_instance(object_store, item)
+                            break;
+                        case "delete":
+                            SYNC.delete_instance(object_store, item)
+                            break;
+                        case "update":
+                            SYNC.update_instance(object_store, item)
+                            break;
+                    };
+                }
+            };
+        },
+
+        add_instance: function(object_store, item) {
+            object_store.add(item.document);
+        },
+
+        delete_instance: function(object_store, item) {
+            object_store.delete(item.document);
+        },
+
+        put_instance: function(object_store, item) {
+            object_store.put(item.document);
+        },
+
+        update_store: function (resource, old_state, new_state) {
+            var success;
+            SYNC.get_update(resource, old_state, {
+                success: success});
+        },
+        
         create_missing_object_stores: function(info) {
             var new_version, open_request, resource_type;
             new_version = info.version + 1;
