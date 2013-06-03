@@ -153,6 +153,8 @@ var SYNC = (function () {
                             console.log(resource_type + " is up to date.");
                         } else {
                             console.log(resource_type + " needs to be updated.");
+                            SYNC.update_store(resource_type, old_state);
+                            
                         }
                         
                     }
@@ -163,10 +165,10 @@ var SYNC = (function () {
         do_update_store: function(items, resource) {
             var open_db_request, object_store, up_transaction, item;
             open_db_request = indexedDB.open(LOCAL_DB_NAME);
-            open_request.onsuccess = function(event) {
-                var db, i, length;
+            open_db_request.onsuccess = function(event) {
+                var db, i, length, up_transaction;
                 db = event.target.result;
-                var transaction = db.transaction([resource], "readwrite");
+                up_transaction = db.transaction([resource], "readwrite");
                 up_transaction.oncomplete = function(event) {
                     console.log('Up transaction complete');
                 };
@@ -179,6 +181,7 @@ var SYNC = (function () {
                 length = items.length;
                 for (i = 0; i < length; i += 1) {
                     item = items[i];
+                    console.log('Made it here!');
                     switch (item.operation) {
                         case "create":
                             SYNC.add_instance(object_store, item)
@@ -202,14 +205,17 @@ var SYNC = (function () {
             object_store.delete(item.document);
         },
 
-        put_instance: function(object_store, item) {
+        update_instance: function(object_store, item) {
             object_store.put(item.document);
         },
 
-        update_store: function (resource, old_state, new_state) {
+        update_store: function (resource, old_state) {
             var success;
             SYNC.get_update(resource, old_state, {
-                success: success});
+                success: function (items) {
+                    SYNC.do_update_store(items, resource);
+                }
+            });
         },
         
         create_missing_object_stores: function(info) {
