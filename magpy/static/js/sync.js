@@ -21,6 +21,20 @@ var SYNC = (function () {
             return "0.2";
         },
 
+        initial: function () {
+            var info, callback, success;
+            success = function(info) {
+                SYNC.update_existing_object_stores(info);
+                SYNC.create_missing_object_stores(info);
+            };
+
+            callback = function(state) {
+                SYNC.call_check_for_object_stores(state, success);
+            };
+            SYNC.get_state({success: callback})
+            return "OK";
+        },
+
         get_state: function (options) {
             var url;
             url = 'http://' + SITE_DOMAIN + '/api/_sync/state/' + APP_NAME + '/';
@@ -66,19 +80,6 @@ var SYNC = (function () {
             open_request.onsuccess = function(e) {
                 SYNC.check_for_object_stores(e, state, success);
             };
-        },
-
-        initial: function () {
-            var info, callback, success;
-            success = function(info) {
-                SYNC.create_missing_object_stores(info);
-            };
-
-            callback = function(state) {
-                SYNC.call_check_for_object_stores(state, success);
-            };
-            SYNC.get_state({success: callback})
-            return "OK";
         },
 
         update_meta_states: function (info) {
@@ -129,6 +130,29 @@ var SYNC = (function () {
                 db = request.result;
             };
             return db
+        },
+
+        update_existing_object_stores: function(info) {
+            var open_request;
+            open_request = indexedDB.open(LOCAL_DB_NAME);
+            open_request.onsuccess = function(event) {
+                var db, resource_type, i, length, transaction;
+                db = event.target.result;
+                // Update resource stores that already exist
+                length = info.present.length;
+                for (i = 0; i < length; i += 1) {
+                    resource_type = info.present[i];
+                    console.log("Check for update: " + resource_type);
+                    transaction = db.transaction([resource_type], "readwrite");
+                    transaction.oncomplete = function(event) {
+                        console.log('Updated: ' + resource_type);
+                    };
+                    transaction.onerror = function(event) {
+                        console.log('Problems updating: ' + resource_type);
+                    };
+
+                }
+            }
         },
 
         create_missing_object_stores: function(info) {
