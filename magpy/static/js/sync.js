@@ -93,7 +93,8 @@ var SYNC = (function () {
                     console.log('Missing object store: ' + resource_type);
                     object_store = db.createObjectStore(
                         resource_type, { keyPath: "_id" });
-                    console.log('Created object store for: ' + resource_type);                
+                    console.log('Created object store for: ' + resource_type);
+                    SYNC.get_all_instances(resource_type);
                 }
             }
             console.log('Done.');
@@ -104,17 +105,17 @@ var SYNC = (function () {
             open_request = indexedDB.open(LOCAL_DB_NAME);
             open_request.onsuccess = function(e) {
                 var length, i, transaction, object_store, add_request;
-                console.log('hello halo2');
+                console.log('Populating: ' + resource);
                 db = e.target.result;
                 var transaction = db.transaction([resource], "readwrite");
 
                 transaction.oncomplete = function(event) {
-                    alert("All done!");
+                    console.log("All done!");
                 };
  
                 transaction.onerror = function(event) {
                     // Don't forget to handle errors!
-                    alert("Error!");
+                    console.log("Error!");
                 };
  
                 object_store = transaction.objectStore(resource);
