@@ -136,47 +136,41 @@ var SYNC = (function () {
                         }
                     }
                 }
-                console.log(info);
-            };
-        },
-
-        /** 5. Get missing stores **/
-
-
-
-        initial: function () {
-            var info, callback, success;
-            success = function(info) {
-                SYNC.update_existing_object_stores(info);
                 SYNC.create_missing_object_stores(info);
             };
+        },
 
-            callback = function(state) {
-                SYNC.call_check_for_object_stores(state, success);
+        /** 5. Create missing stores **/
+        create_missing_object_stores: function(info) {
+            var new_version, open_request, resource_type;
+            new_version = info.version + 1;
+            open_request = indexedDB.open(LOCAL_DB_NAME, new_version);
+            open_request.onupgradeneeded = function(event) {
+                var db, object_store, resource_type, i, length;
+                db = event.target.result;
+                
+                // Create resource stores
+                length = info.missing.length;
+                for (i = 0; i < length; i += 1) {
+                    resource_type = info.missing[i];
+                    console.log('Missing object store: ' + resource_type);
+                    object_store = db.createObjectStore(
+                        resource_type, { keyPath: "_id" });
+                    console.log('Created object store for: ' + resource_type);
+                }
             };
-            SYNC.get_state({success: callback})
-            return "OK";
-        },
 
-        get_state: function (options) {
-            var url;
-            url = 'http://' + SITE_DOMAIN + '/api/_sync/state/' + APP_NAME + '/';
-            if (typeof options === "undefined") {
-                options = {
-                    success: function (thing) {console.log(thing);}
-                };
-            }
-            MAG._REQUEST.request(url, options);
-        },
-
-
-        call_check_for_object_stores: function(state, success) {
-            var open_request;
-            open_request = indexedDB.open(LOCAL_DB_NAME);
-            open_request.onsuccess = function(e) {
-                SYNC.check_for_object_stores(e, state, success);
+            open_request.onsuccess = function() {
+                console.log('We have the stores');
             };
+
+            //console.log('Done.');
+            //SYNC.update_meta_states(info);
         },
+
+
+
+
 
         update_meta_states: function (info) {
             if (info._meta == 0) {return}
@@ -329,35 +323,6 @@ var SYNC = (function () {
             });
         },
         
-        create_missing_object_stores: function(info) {
-            var new_version, open_request, resource_type;
-            new_version = info.version + 1;
-            open_request = indexedDB.open(LOCAL_DB_NAME, new_version);
-            open_request.onupgradeneeded = function(e) {
-                var db, object_store, resource_type, i, length;
-                db = e.target.result;
-                // Create meta store if needed
-                if (info._meta == 0) {
-                    console.log('Missing _meta object store.');
-                    object_store = db.createObjectStore(
-                        '_meta', { keyPath: "_id" });
-                    console.log('Created _meta object store.');
-                }
-
-                // Create resource stores
-                length = info.missing.length;
-                for (i = 0; i < length; i += 1) {
-                    resource_type = info.missing[i];
-                    console.log('Missing object store: ' + resource_type);
-                    object_store = db.createObjectStore(
-                        resource_type, { keyPath: "_id" });
-                    console.log('Created object store for: ' + resource_type);
-                    SYNC.get_all_instances(resource_type);
-                }
-            }
-            console.log('Done.');
-            SYNC.update_meta_states(info);
-        },
 
         populate_instances: function (instances, resource) {
             var open_request;
