@@ -13,12 +13,80 @@ var EXAMPLE_STATE = {
     series: "502962b349d52414fc0000d1",
 }
 
+/**
+
+- Get local state
+0. Get state from server if possible, if not stop sync
+1. Check for object stores
+2. Create object stores
+3. Fill object stores
+
+*/
+
 var SYNC = (function () {
     "use strict";
     return {
         // body of module here
-        get_version: function () {
-            return "0.2";
+
+        /** 1. We need a meta store. */
+        check_for_meta_store: function() {
+            var request = indexedDB.open(LOCAL_DB_NAME);
+            request.onerror = function(event) {
+                alert("Why didn't you allow my web app to use IndexedDB?!");
+            };
+            request.onsuccess = function(event) {
+                var db, transaction;
+                db = request.result;
+                if (db.objectStoreNames.contains('_meta')) {
+                    SYNC.check_local_state();
+                } else {
+                    SYNC.create_meta_store(db.version);
+                }
+            };
+        },
+
+        /** 1a. Make the meta store. */
+        create_meta_store: function(version) {
+            var new_version, open_request;
+            new_version = version + 1;
+            open_request = indexedDB.open(LOCAL_DB_NAME, new_version);
+            open_request.onupgradeneeded = function(event) { 
+                var db = event.target.result;
+                var object_store = db.createObjectStore("_meta", { keyPath: "_id" });
+            };
+            open_request.onsuccess = function(event) {
+                SYNC.check_local_state();
+            };
+        },
+        
+        /** 2. We need a local state object. */
+        check_local_state: function() {
+            var request = indexedDB.open(LOCAL_DB_NAME);
+            request.onsuccess = function(event) {
+                var db = event.target.result;
+                db.transaction("_meta").objectStore("_meta").get("state").onsuccess = function(event) {
+                    var status = event.target.result;
+                    if (typeof status == "undefined") {
+                        SYNC.create_local_state()
+                    } else {
+                        // Do something, go to the next step
+                    }
+                };
+            };
+        },
+ 
+        /** 2a. Make the local state object. */
+        create_local_state: function() {
+            var request = indexedDB.open(LOCAL_DB_NAME);
+            request.onsuccess = function(event) {
+                var db = event.target.result;
+                var transaction = db.transaction(["_meta"], "readwrite");
+                var object_store = transaction.objectStore("_meta");
+                var add_request = object_store.add({'_id': 'state'});
+                add_request.onsuccess = function(event) {
+                    // Go to the next step
+                };
+            };   
         },
 
         initial: function () {
