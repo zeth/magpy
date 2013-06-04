@@ -220,9 +220,7 @@ var SYNC = (function () {
                 length = instances.length;
                 for (i = 0; i < length; i += 1) {
                     add_request = object_store.add(instances[i]);
-                    add_request.onsuccess = function(event) {
-                        SYNC.update_local_state(resource, objectid)
-                    };
+                    add_request.onsuccess = function(event) {};
                 }
             };
             open_request.onerror = function(event) {
@@ -312,22 +310,24 @@ var SYNC = (function () {
             object_store.put(item.document);
         },
 
-        /** 8. Update local meta state TODO */
+        /** 8. Update local meta state */
         update_local_state: function(resource, objectid) {
             var request = indexedDB.open(LOCAL_DB_NAME);
             request.onsuccess = function(event) {
                 var db = event.target.result;
                 db.transaction("_meta").objectStore("_meta").get("state").onsuccess = function(event) {
                     var state = event.target.result;
-                    state[resource] = objectid;
-                    put_request = indexedDB.open(LOCAL_DB_NAME);
-                    request.onsuccess = function(event) {
+                    var put_request = indexedDB.open(LOCAL_DB_NAME);
+                    put_request.onsuccess = function(event) {
+                        state[resource] = objectid;
+                        console.log('state is...');
+                        console.log(state);
                         db = request.result;
-                        transaction = db.transaction(["_meta"], "readwrite");
-                        var object_store = transaction.objectStore("_meta");
+                        var transaction = db.transaction(["_meta"], "readwrite");
                         transaction.oncomplete = function(event) {
-                            console.log("Meta transaction complete.");
+                            console.log("Meta updated for " + resource);
                         };
+                        var object_store = transaction.objectStore("_meta");
                         object_store.put(state);
                     };
 
