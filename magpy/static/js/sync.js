@@ -28,6 +28,11 @@ var SYNC = (function () {
     return {
         // body of module here
 
+
+        init: function() {
+            SYNC.check_for_meta_store()
+        },
+
         /** 1. We need a meta store. */
         check_for_meta_store: function() {
             var request = indexedDB.open(LOCAL_DB_NAME);
@@ -70,6 +75,7 @@ var SYNC = (function () {
                         SYNC.create_local_state()
                     } else {
                         // Do something, go to the next step
+                        SYNC.get_remote_state(status)
                     }
                 };
             };
@@ -82,12 +88,61 @@ var SYNC = (function () {
                 var db = event.target.result;
                 var transaction = db.transaction(["_meta"], "readwrite");
                 var object_store = transaction.objectStore("_meta");
-                var add_request = object_store.add({'_id': 'state'});
+                var blank_state = {'_id': 'state'};
+                var add_request = object_store.add(blank_state);
                 add_request.onsuccess = function(event) {
                     // Go to the next step
+                    SYNC.get_remote_state(blank_state);
                 };
             };   
         },
+
+        /** 3. Try to get the remote state object,
+               if we fail then sync has failed
+               since we are offline */
+        get_remote_state: function (local_state) {
+            var url, options;
+            url = 'http://' + SITE_DOMAIN + '/api/_sync/state/' + APP_NAME + '/';
+            if (typeof options === "undefined") {
+                options = {
+                    success: function (remote) {
+                        var info = {local_state: local_state,
+                                    remote_state: remote.state}
+                        SYNC.check_for_relevant_object_stores(info);
+                    }
+                };
+            }
+            MAG._REQUEST.request(url, options);
+        },
+
+        /** 4. Check for object stores */
+        check_for_relevant_object_stores: function(info) {
+            var open_request;
+            open_request = indexedDB.open(LOCAL_DB_NAME);
+            open_request.onsuccess = function(event) {
+                var db, resource_type;
+                db = event.target.result;
+                info.version = db.version;
+                info.present = []
+                info.missing = []
+
+                // Check for resources
+                for (resource_type in info.remote_state) {
+                    if (info.remote_state.hasOwnProperty(resource_type)) {
+                        if (db.objectStoreNames.contains(resource_type)) {
+                            info.present[info.present.length] = resource_type;
+                        } else {
+                            info.missing[info.missing.length] = resource_type;
+                        }
+                    }
+                }
+                console.log(info);
+            };
+        },
+
+        /** 5. Get missing stores **/
+
+
 
         initial: function () {
             var info, callback, success;
@@ -114,33 +169,6 @@ var SYNC = (function () {
             MAG._REQUEST.request(url, options);
         },
 
-        check_for_object_stores: function (e, state, success) {
-            var resource_type, db, info;
-            db = e.target.result;
-            info = {version: db.version,
-                    present: [],
-                    missing: [],
-                    state: state.state}
-
-            // Check for meta
-            if (db.objectStoreNames.contains('_meta')) {
-                info._meta = 1;
-            } else {
-                info._meta = 0;
-            }
-
-            // Check for resources
-            for (resource_type in state.state) {
-                if (state.state.hasOwnProperty(resource_type)) {
-                    if (db.objectStoreNames.contains(resource_type)) {
-                        info.present[info.present.length] = resource_type;
-                    } else {
-                        info.missing[info.missing.length] = resource_type;
-                    }
-                }
-            }
-            success(info);
-        },
 
         call_check_for_object_stores: function(state, success) {
             var open_request;
