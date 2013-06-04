@@ -136,15 +136,19 @@ var SYNC = (function () {
                         }
                     }
                 }
-                SYNC.create_missing_object_stores(info);
+                if (info.missing.length > 0) {
+                    SYNC.create_missing_object_stores(info);
+                } else {
+                    // skip to the next step.
+                }
             };
         },
 
         /** 5. Create missing stores **/
         create_missing_object_stores: function(info) {
             var new_version, open_request, resource_type;
-            new_version = info.version + 1;
-            open_request = indexedDB.open(LOCAL_DB_NAME, new_version);
+            info.version += 1;
+            open_request = indexedDB.open(LOCAL_DB_NAME, info.version);
             open_request.onupgradeneeded = function(event) {
                 var db, object_store, resource_type, i, length;
                 db = event.target.result;
@@ -162,112 +166,104 @@ var SYNC = (function () {
 
             open_request.onsuccess = function() {
                 console.log('We have the stores');
+                SYNC.populate_empty_stores(info);
+                SYNC.update_existing_object_stores(info);
             };
-
-            //console.log('Done.');
-            //SYNC.update_meta_states(info);
         },
 
+        /** 6. Populate empty stores. */
+        populate_empty_stores: function(info) {
+            var length, i;
+            length = info.missing.length;
+            for (i = 0; i < length; i += 1) {
+                SYNC.get_all_instances(info.missing[i], info);
+            }
+        },
 
+        /** 6a. Get all the instances from remote server. */
+        get_all_instances: function (resource, info) {
+            var base_url, url, options, success;
+            success = function(results) {
+                SYNC.populate_instances(results.results, resource, info);
+            }
+            options = {success:success};
+            base_url = MAG._STORAGE.get_data_from_storage_or_function(
+                "MAG._REST.get_api_url"
+            );
+            url = base_url + resource + '/';
+            MAG._REQUEST.request(url, options);
+        },        
 
+        /** 6b. Populate the empty stores with the remote instances. */
+        populate_instances: function (instances, resource, info) {
+            var open_request;
+            open_request = indexedDB.open(LOCAL_DB_NAME);
+            open_request.onsuccess = function(e) {
+                var length, i, transaction, object_store, add_request;
+                console.log('Populating: ' + resource);
+                db = e.target.result;
+                var transaction = db.transaction([resource], "readwrite");
 
-
-        update_meta_states: function (info) {
-            if (info._meta == 0) {return}
-
-            var request = indexedDB.open(LOCAL_DB_NAME);
-            request.onerror = function(event) {
-                alert("Why didn't you allow my web app to use IndexedDB?!");
-            };
-            request.onsuccess = function(event) {
-                var db, transaction;
-                db = request.result;
-                transaction = db.transaction(["_meta"], "readwrite");
-                //transaction.onsuccess = function(event) {
-                    // Don't forget to handle errors!
-                //};
+                transaction.oncomplete = function(event) {
+                    SYNC.update_local_state(
+                        resource,
+                        info.remote_state[resource]);
+                };
+ 
                 transaction.onerror = function(event) {
                     // Don't forget to handle errors!
+                    console.log("Error!");
                 };
-                var object_store = transaction.objectStore("_meta");
-                transaction.oncomplete = function(event) {
-                    console.log("Meta transaction complete.");
-                };
-                var store_request = object_store.get("state");
-                store_request.onerror = function(event) {
-                    // Handle errors!
-                    console.log("Could not find if state exists or not.");
-                };
-                store_request.onsuccess = function(event) {
-                    var state, resource;
-                    // Do something with the request.result!
-                    if (typeof store_request.result == "undefined") {
-                        state = {'_id': 'state'}
-                    } else {
-                        state = store_request.result;
-                    }
-                    for (resource in info.state) {
-                        if (info.state.hasOwnProperty(resource)) {
-                            state[resource] = info.state[resource];
-                        }
-                    };
-                    var update_request = object_store.put(state)
-                    update_request.onsuccess = function(event) {
-                        console.log('Meta State updated.');
-                    };
+ 
+                object_store = transaction.objectStore(resource);
 
-                };
+                length = instances.length;
+                for (i = 0; i < length; i += 1) {
+                    add_request = object_store.add(instances[i]);
+                    add_request.onsuccess = function(event) {
+                        SYNC.update_local_state(resource, objectid)
+                    };
+                }
             };
-
+            open_request.onerror = function(event) {
+                alert("Database error: " + event.target.errorCode);
+                console.log("Database error: " + event.target.errorCode);
+            };
         },
 
+        /** 7. Update existing stores. */
         update_existing_object_stores: function(info) {
-            var open_request;
-            if (info._meta == 0) {return}
-            open_request = indexedDB.open(LOCAL_DB_NAME);
-            open_request.onsuccess = function(event) {
-                var db, store_names;
-                db = event.target.result;
-                store_names = ['_meta'].concat(info.present);
-                var meta_transaction = db.transaction(store_names);
-                meta_transaction.oncomplete = function(event) {
-                    console.log('Meta transaction complete');
-                }
-                meta_transaction.onerror = function(event) {
-                    // Don't forget to handle errors!
-                };
-                //meta_transaction.onsuccess = function(event) {
-                    // Don't forget to handle errors!
-                //};
-                var meta_store = meta_transaction.objectStore("_meta");
-                var meta_request = meta_store.get("state");
-                meta_request.onerror = function(event) {
-                    // Handle errors!
-                    console.log("Couldn't find status");
-                };
-                meta_request.onsuccess = function(event) {
-                    var i, length, transaction, resource_type, state, old_state, new_state;
-                    // Update resource stores that already exist
-                    state = event.target.result;
-                    length = info.present.length;
-                    for (i = 0; i < length; i += 1) {
-                        resource_type = info.present[i];
-                        old_state = state[resource_type]
-                        new_state = info.state[resource_type]
-                        if (old_state == new_state) {
-                            console.log(resource_type + " is up to date.");
-                        } else {
-                            console.log(resource_type + " needs to be updated.");
-                            SYNC.update_store(resource_type, old_state);
-                            
-                        }
-                        
-                    }
+            var length, i, resource_type, old_state, new_state;
+            length = info.present.length;
+            for (i = 0; i < length; i += 1) {
+                resource_type = info.present[i];
+                old_state = info.local_state[resource_type]
+                new_state = info.remote_state[resource_type]
+                if (old_state == new_state) {
+                    console.log(resource_type + " is up to date.");
+                } else {
+                    console.log(resource_type + " needs to be updated.");
+                    SYNC.get_update(resource, old_state, new_state);
                 }
             }
         },
 
-        do_update_store: function(items, resource) {
+        /** 7a. get the updated instances. */
+        get_update: function (resource, objectid, new_state) {
+            var base_url, url;
+            base_url = MAG._STORAGE.get_data_from_storage_or_function(
+                "MAG._REST.get_api_url"
+            );
+            url = base_url + '_sync/update/' + resource + '/' + objectid + '/';
+            MAG._REQUEST.request(url, {
+                success: function (items) {
+                    SYNC.do_update_store(items, resource, new_state);
+                }
+            });
+        },
+
+        /** 7b. store the updated instances */
+        do_update_store: function(items, resource, new_state) {
             var open_db_request, object_store, up_transaction, item;
             open_db_request = indexedDB.open(LOCAL_DB_NAME);
             open_db_request.onsuccess = function(event) {
@@ -275,7 +271,9 @@ var SYNC = (function () {
                 db = event.target.result;
                 up_transaction = db.transaction([resource], "readwrite");
                 up_transaction.oncomplete = function(event) {
-                    console.log('Up transaction complete');
+                    SYNC.update_local_state(
+                        resource,
+                        new_state);
                 };
                 up_transaction.onerror = function(event) {
                     // Don't forget to handle errors!
@@ -314,76 +312,27 @@ var SYNC = (function () {
             object_store.put(item.document);
         },
 
-        update_store: function (resource, old_state) {
-            var success;
-            SYNC.get_update(resource, old_state, {
-                success: function (items) {
-                    SYNC.do_update_store(items, resource);
-                }
-            });
-        },
-        
-
-        populate_instances: function (instances, resource) {
-            var open_request;
-            open_request = indexedDB.open(LOCAL_DB_NAME);
-            open_request.onsuccess = function(e) {
-                var length, i, transaction, object_store, add_request;
-                console.log('Populating: ' + resource);
-                db = e.target.result;
-                var transaction = db.transaction([resource], "readwrite");
-
-                transaction.oncomplete = function(event) {
-                    console.log("All done!");
-                };
- 
-                transaction.onerror = function(event) {
-                    // Don't forget to handle errors!
-                    console.log("Error!");
-                };
- 
-                object_store = transaction.objectStore(resource);
-
-                length = instances.length;
-                for (i = 0; i < length; i += 1) {
-                    add_request = object_store.add(instances[i]);
-                    add_request.onsuccess = function(event) {
-                        console.log('.');
+        /** 8. Update local meta state TODO */
+        update_local_state: function(resource, objectid) {
+            var request = indexedDB.open(LOCAL_DB_NAME);
+            request.onsuccess = function(event) {
+                var db = event.target.result;
+                db.transaction("_meta").objectStore("_meta").get("state").onsuccess = function(event) {
+                    var state = event.target.result;
+                    state[resource] = objectid;
+                    put_request = indexedDB.open(LOCAL_DB_NAME);
+                    request.onsuccess = function(event) {
+                        db = request.result;
+                        transaction = db.transaction(["_meta"], "readwrite");
+                        var object_store = transaction.objectStore("_meta");
+                        transaction.oncomplete = function(event) {
+                            console.log("Meta transaction complete.");
+                        };
+                        object_store.put(state);
                     };
-                }
-            };
-            open_request.onerror = function(event) {
-                alert("Database error: " + event.target.errorCode);
-                console.log("Database error: " + event.target.errorCode);
-            };
-        },
 
-        get_all_instances: function (resource) {
-            var base_url, url, options, success;
-            success = function(results) {
-                SYNC.populate_instances(results.results, resource);
-            }
-            options = {success:success}
-            base_url = MAG._STORAGE.get_data_from_storage_or_function(
-                "MAG._REST.get_api_url"
-            );
-            url = base_url + resource + '/';
-            MAG._REQUEST.request(url, options);
-        },
-
-        get_update: function (resource, objectid, options) {
-            var base_url, url, options, success;
-            if (typeof options === "undefined") {
-                options = {
-                    success: function (thing) {console.log(thing);}
                 };
-            }
-            base_url = MAG._STORAGE.get_data_from_storage_or_function(
-                "MAG._REST.get_api_url"
-            );
-            url = base_url + '_sync/update/' + resource + '/' + objectid + '/';
-            console.log("url is " + url);
-            MAG._REQUEST.request(url, options);
+            };
         },
 
 
