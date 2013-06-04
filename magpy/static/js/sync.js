@@ -83,14 +83,22 @@ var SYNC = (function () {
         },
 
         update_meta_states: function (info) {
-            var db;
+            if (info._meta == 0) {return}
+
             var request = indexedDB.open(LOCAL_DB_NAME);
             request.onerror = function(event) {
                 alert("Why didn't you allow my web app to use IndexedDB?!");
             };
             request.onsuccess = function(event) {
+                var db, transaction;
                 db = request.result;
-                var transaction = db.transaction(["_meta"], "readwrite");
+                transaction = db.transaction(["_meta"], "readwrite");
+                //transaction.onsuccess = function(event) {
+                    // Don't forget to handle errors!
+                //};
+                transaction.onerror = function(event) {
+                    // Don't forget to handle errors!
+                };
                 var object_store = transaction.objectStore("_meta");
                 transaction.oncomplete = function(event) {
                     console.log("Meta transaction complete.");
@@ -125,6 +133,7 @@ var SYNC = (function () {
 
         update_existing_object_stores: function(info) {
             var open_request;
+            if (info._meta == 0) {return}
             open_request = indexedDB.open(LOCAL_DB_NAME);
             open_request.onsuccess = function(event) {
                 var db, store_names;
@@ -134,6 +143,12 @@ var SYNC = (function () {
                 meta_transaction.oncomplete = function(event) {
                     console.log('Meta transaction complete');
                 }
+                meta_transaction.onerror = function(event) {
+                    // Don't forget to handle errors!
+                };
+                //meta_transaction.onsuccess = function(event) {
+                    // Don't forget to handle errors!
+                //};
                 var meta_store = meta_transaction.objectStore("_meta");
                 var meta_request = meta_store.get("state");
                 meta_request.onerror = function(event) {
