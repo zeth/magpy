@@ -142,6 +142,10 @@ class ModelValidator(object):
             self.model_keys.remove('_model')
         except KeyError:
             pass
+        try:
+            self.model_keys.remove('_applications')
+        except KeyError:
+            pass
 
     def do_dispatch(self, field_type, field_data):
         """Do the dispatch."""

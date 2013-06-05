@@ -2,9 +2,11 @@
 Currently does not do much except support certain command line scripts.
 """
 import os
+import json
 import pyejdb
 from pyejdb.bson import BSON_ObjectId
 from pyejdb.typecheck import InputParameterError
+from bson.objectid import ObjectId
 
 class Database(object):
     """Simple database connection for use in serverside scripts etc."""
@@ -54,3 +56,30 @@ class Collection(object):
                 # Move the _id into id
                 instance['id'] = instance.pop('_id')
         self.database.database.save(self.name, instance)
+        self.raw_write(instance)
+
+    def raw_write(self, instance):
+        """Write a raw copy for debugging."""
+        if 'id' in instance:
+            identifier = instance['id']
+        else:
+            identifer = str(ObjectId())
+
+        top_level = os.path.expanduser('~/raw')
+        filedir = os.path.join(
+            top_level,
+            instance['_model'])
+
+        if not os.path.exists(top_level):
+            raise IOError
+        if not os.path.exists(filedir):
+            os.mkdir(filedir)
+
+        filename = os.path.join(filedir, identifier)
+
+        with open(filename, 'w') as filepointer:
+            json.dump(instance,
+                      filepointer,
+                      indent=4,
+                      sort_keys=True,
+                      ensure_ascii=False)

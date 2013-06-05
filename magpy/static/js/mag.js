@@ -14,9 +14,13 @@
 
 */
 
-    if (typeof SITE_DOMAIN === 'undefined') {
-        SITE_DOMAIN = 'localhost';
-    }
+if (typeof SITE_DOMAIN === 'undefined') {
+    SITE_DOMAIN = 'localhost';
+}
+
+if (typeof APP_NAME === 'undefined') {
+    APP_NAME = window.location.pathname.split('/')[1];
+}
 
 /** Array.indexOf for IE before IE9 */
 if (!Array.prototype.indexOf) {
