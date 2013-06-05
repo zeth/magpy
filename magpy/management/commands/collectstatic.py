@@ -44,6 +44,7 @@ class Command(BaseCommand):
         # 2. Build a dictionary of static file names
         static_files = []
         for app in apps:
+	    print("Looking for static files in ", app)
             path = self.get_path(app)
             if path:
                 static_files.extend(
@@ -62,6 +63,7 @@ class Command(BaseCommand):
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
             # Copy the file
+	    print("Copying %s to %s" % (source, target))
             copy(source, target)
 
     @staticmethod
