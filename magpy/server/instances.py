@@ -5,8 +5,6 @@
 from __future__ import print_function
 
 from magpy.server.database import Database
-from magpy.server.validators import validate_model_instance, ValidationError
-import sys
 
 
 class InstanceLoader(object):
@@ -19,7 +17,7 @@ class InstanceLoader(object):
                  embedded=False):
         """Startup the loader."""
         self.handle_none = handle_none
-        self.validation = validation
+        self.skip_validation = not validation
         database_type = None
         if embedded:
             database_type = 'ainodb'
@@ -32,24 +30,10 @@ class InstanceLoader(object):
 
     def add_instance(self, instance):
         """Add instance to the db."""
-        model_name = instance['_model']
-
-        if self.validation:
-            model_collection = self.database.get_collection('_model')
-            model = model_collection.find_one({'_id': model_name})
-            try:
-                validate_model_instance(model,
-                                        instance,
-                                        handle_none=self.handle_none)
-            except ValidationError:
-                print("Died on instance:")
-                print(instance)
-                raise
-
-        # We got this far, yay!
-        instance_collection = self.database.get_collection(model_name)
-        instance_collection.save(instance)
-        sys.stdout.write(model_name[0])
+        self.database.add_instance(
+            instance,
+            skip_validation=self.skip_validation,
+            handle_none=self.handle_none)
 
     def add_instances(self, instances):
         """All several instances to the db."""
