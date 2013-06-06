@@ -1,12 +1,13 @@
-B"""Database access."""
+"""Database access."""
 
 from __future__ import print_function
 
+import sys
 from copy import deepcopy
 from functools import partial
 
 import tornado.web
-from bson.objectid import ObjectId
+#from bson.objectid import ObjectId
 
 from magpy.server.utils import instance_list_to_dict
 from magpy.server.validators import validate_model_instance, \
@@ -17,13 +18,19 @@ from magpy.server.config import MagpyConfigParser
 
 try:
     from settings import DEFAULT_DATABASE
-except:
+except ImportError:
     DEFAULT_DATABASE = None
 
 try:
     from settings import TEST_DATABASE
-except:
+except ImportError:
     TEST_DATABASE = 'test'
+
+
+class ModelIndexError(Exception):
+    """Cannot index the field we have been asked to index,
+    because index:False in the model."""
+    pass
 
 
 class Database(object):
@@ -181,6 +188,54 @@ class Database(object):
         self.remove_list_setting('applications', 'installed_apps',
                                  app_name)
 
+    def get_model(self, model_name):
+        """Get a model."""
+        models = self.get_collection('_model')
+        return models.find_one({'_id': model_name})
+
+    def index(self, model_name, field_name, force=False):
+        """Create an index for the field,
+        (if the index does not already exist)."""
+        model = self.get_model(model_name)
+        field = model[field_name]
+        if 'index' in field:
+            if field['index'] is False and force is False:
+                raise ModelIndexError(
+                    "Field definition has index: False. "
+                    "Use force=True to override.")
+        collection = self.get_collection(model_name)
+        collection.ensure_index(field_name)
+
+    def add_instance(self, instance,
+                     skip_validation=False,
+                     handle_none=False):
+        """Add an instance to the db."""
+        model_name = instance['_model']
+
+        if not skip_validation:
+            model = self.get_model(model_name)
+
+            try:
+                validate_model_instance(model,
+                                        instance,
+                                        handle_none=handle_none)
+            except ValidationError:
+                print("Died on instance:")
+                print(instance)
+                raise
+
+        # We got this far, yay!
+        instance_collection = self.get_collection(model_name)
+        instance_collection.save(instance)
+        sys.stdout.write(model_name[0])
+
+    def add_instances(self, instances,
+                      skip_validation=False,
+                      handle_none=False):
+        """All several instances to the db."""
+        for instance in instances:
+            self.add_instance(instance, skip_validation, handle_none)
+
 
 class DatabaseMixin(object):
     """Mix into class to get database support."""
@@ -312,8 +367,8 @@ class ValidationMixin(object):
         self.get_models(model_names,
                         callback=callback)
 
-    def _validate_modifier(self,
-                           models,
+    @staticmethod
+    def _validate_modifier(models,
                            error,
                            model_name, modifier,
                            embedded_model_names,
@@ -387,8 +442,8 @@ class ValidationMixin(object):
         self.get_models(model_names=model_names,
                         callback=callback)
 
-    def _handle_embedded_models(self,
-                                list_of_embedded_models,
+    @staticmethod
+    def _handle_embedded_models(list_of_embedded_models,
                                 error,
                                 model,
                                 instance,
@@ -401,7 +456,8 @@ class ValidationMixin(object):
             model=model,
             embedded_models=embedded_models)
 
-    def _do_validate(self, model, instance, success,
+    @staticmethod
+    def _do_validate(model, instance, success,
                      embedded_models=None):
         """Validate an instance."""
         try:
