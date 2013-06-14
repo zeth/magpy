@@ -902,7 +902,11 @@ var MAG = (function () {
                 },
                 
                 /** Resolve a list of user ids to real names
-                 * 
+                 * ids a list of user ids to resolve
+                    options - dictionary of optional arguments:
+                    options.success
+                    options.error
+                    options.force_reload
                  *  */
                 resolve_user_ids: function (ids, options) {
                     if (typeof options === "undefined") {
