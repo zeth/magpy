@@ -7,6 +7,7 @@ from __future__ import print_function
 from __future__ import print_function
 from __future__ import print_function
 from magpy.server.instances import InstanceLoader
+from magpy.server.database import Database
 from magpy.management import BaseCommand, CommandError
 import importlib
 
@@ -32,6 +33,7 @@ class Command(BaseCommand):
             new_models = getattr(models_module, 'MODELS', [])
             for index, model in enumerate(new_models):
                 self.validate_model(model, index, module_name)
+                self.index_model(model)
 
             models.extend(new_models)
 
@@ -57,6 +59,12 @@ class Command(BaseCommand):
             print("Warning: Model %s in %s does not have a " \
                 "'modeldescription' key" % (index, module_name))
             print("Warning: Apps which assume a modeldescription may break.")
+
+    def index_model(self, model):
+        """Make sure each key has an index."""
+        for field in model:
+            if field is not '_id':
+                print ("Index:", field)
 
     @staticmethod
     def _abort(index, module_name):
