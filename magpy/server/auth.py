@@ -404,8 +404,6 @@ class AuthWhoAreTheyHandler(tornado.web.RequestHandler,
         for entry in result:
             if 'name' in entry.keys():
                 resolved[entry['_id']] = entry['name']
-            elif 'ITSEE_id' in entry.keys():
-                resolved[entry['_id']] = entry['ITSEE_id']
             elif 'last_name' in entry.keys():
                 resolved[entry['_id']] = entry['last_name']
             elif 'first_name' in entry.keys():
