@@ -4,7 +4,8 @@ Other URL handler files can be added by the applications."""
 from magpy.server.api import ResourceHandler, ResourceTypeHandler, \
     CommandHandler
 from magpy.server.auth import AuthLoginHandler, AuthLogoutHandler, \
-    AuthWhoAmIHandler, AuthPermissionHandler, AuthPermissionsHandler
+    AuthWhoAmIHandler, AuthPermissionHandler, AuthPermissionsHandler,\
+    AuthWhoAreTheyHandler
 
 
 URLS = [
@@ -14,6 +15,7 @@ URLS = [
     (r"/auth/login/", AuthLoginHandler),
     (r"/auth/logout/", AuthLogoutHandler),
     (r"/auth/whoami/", AuthWhoAmIHandler),
+    (r"/auth/whoarethey/", AuthWhoAreTheyHandler),
     (r"/auth/checkpermission/(\w+)/([a-zA-Z0-9_-]+)/?", AuthPermissionHandler),
     (r"/auth/checkpermission/?", AuthPermissionsHandler),
     ]

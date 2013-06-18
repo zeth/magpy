@@ -900,6 +900,62 @@ var MAG = (function () {
                         }
                     }
                 },
+                
+                /** Resolve a list of user ids to real names
+                 * 
+                 *  */
+                resolve_user_ids: function (ids, options) {
+                    if (typeof options === "undefined") {
+                        options = {};
+                    }
+                    var url, api_url, callback, query_string;
+                    if (typeof options.force_reload === 'undefined') {
+                        options.force_reload = false;
+                    }
+                    if (MAG.TYPES.is_array(ids)) {
+                        query_string = MAG.URL.build_query_string({'ids': ids});
+                    } else if (MAG.TYPES.is_string(ids)) {
+                        query_string = MAG.URL.build_query_string({'ids': [ids]});
+                    }                    
+                    url = 'http://' + SITE_DOMAIN;
+                    url += '/auth/whoarethey/?' + query_string;
+                    api_url = 'api:' + url;
+
+                    if (typeof options.success === 'undefined') {
+                        // No optional callback
+                        // Just cache the resource
+                        if (
+                            MAG._STORAGE.is_stored_item(api_url) &&
+                                (options.force_reload === false)
+                        ) {
+                            // Nothing to do
+                            return;
+                        }
+                        options.success = function (data) {
+                            MAG._STORAGE.store_data(api_url, data);
+                        };
+                    } else {
+                        // We have an optional callback so use it.
+                        if (
+                            MAG._STORAGE.is_stored_item(api_url) &&
+                                options.force_reload === false
+                        ) {
+                            options.success(
+                                MAG._STORAGE.get_data_from_storage(api_url)
+                            );
+                            return;
+                        }
+                        callback = options.success;
+                        options.success = function (data) {
+                            MAG._STORAGE.store_data(api_url, data);
+                            callback(data);
+                        };
+                    } // if (typeof optional_callback === 'undefined')
+                    // So now we have a callback.
+                    options.method = "GET";
+                    MAG._REQUEST.request(url, options);
+                },
+                
                 /** Get user info
                     options - dictionary of optional arguments:
                     options.success
