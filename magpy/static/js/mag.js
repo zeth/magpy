@@ -1,5 +1,5 @@
 /*global window, document, localStorage, XMLHttpRequest, Element,
-  ActiveXObject, SITE_DOMAIN:true, APP_NAME:true*/
+  ActiveXObject, SITE_DOMAIN:true, APP_NAME:true */
 /*jslint nomen: true*/
 
 /**
@@ -904,6 +904,62 @@ var MAG = (function () {
                         }
                     }
                 },
+                
+                /** Resolve a list of user ids to real names
+                 * 
+                 *  */
+                resolve_user_ids: function (ids, options) {
+                    if (typeof options === "undefined") {
+                        options = {};
+                    }
+                    var url, api_url, callback, query_string;
+                    if (typeof options.force_reload === 'undefined') {
+                        options.force_reload = false;
+                    }
+                    if (MAG.TYPES.is_array(ids)) {
+                        query_string = MAG.URL.build_query_string({'ids': ids});
+                    } else if (MAG.TYPES.is_string(ids)) {
+                        query_string = MAG.URL.build_query_string({'ids': [ids]});
+                    }                    
+                    url = 'http://' + SITE_DOMAIN;
+                    url += '/auth/whoarethey/?' + query_string;
+                    api_url = 'api:' + url;
+
+                    if (typeof options.success === 'undefined') {
+                        // No optional callback
+                        // Just cache the resource
+                        if (
+                            MAG._STORAGE.is_stored_item(api_url) &&
+                                (options.force_reload === false)
+                        ) {
+                            // Nothing to do
+                            return;
+                        }
+                        options.success = function (data) {
+                            MAG._STORAGE.store_data(api_url, data);
+                        };
+                    } else {
+                        // We have an optional callback so use it.
+                        if (
+                            MAG._STORAGE.is_stored_item(api_url) &&
+                                options.force_reload === false
+                        ) {
+                            options.success(
+                                MAG._STORAGE.get_data_from_storage(api_url)
+                            );
+                            return;
+                        }
+                        callback = options.success;
+                        options.success = function (data) {
+                            MAG._STORAGE.store_data(api_url, data);
+                            callback(data);
+                        };
+                    } // if (typeof optional_callback === 'undefined')
+                    // So now we have a callback.
+                    options.method = "GET";
+                    MAG._REQUEST.request(url, options);
+                },
+                
                 /** Get user info
                     options - dictionary of optional arguments:
                     options.success
@@ -1376,11 +1432,19 @@ var MAG = (function () {
                 /** Send a request, given string data where appropriate */
                 request: function (url,
                                    options) {
+                    var mime;
                     if (typeof options === "undefined") {
                         options = {};
                     }
                     if (typeof options.method === "undefined") {
                         options.method = "GET";
+                    }
+
+                    if (typeof options.mime !== "undefined") {
+                        mime = options.mime;
+                        delete options.mime;
+                    } else {
+                        mime = 'json'
                     }
 
                     var xhr, trimPosition, header, default_headers;
@@ -1393,15 +1457,17 @@ var MAG = (function () {
                     ) {
                         url = url.substr(0, trimPosition);
                     }
-                    // IE needs a special JSON bit in the URL
-                    if (
-                        MAG._REQUEST.detect_ie()
-                    ) {
-                        url = MAG.URL.add_argument_to_url(
-                            url,
-                            'format',
-                            'json'
-                        );
+                    if (mime === 'json') {
+                        // IE needs a special JSON bit in the URL
+                        if (
+                            MAG._REQUEST.detect_ie()
+                        ) {
+                            url = MAG.URL.add_argument_to_url(
+                                url,
+                                'format',
+                                'json'
+                            );
+                        }
                     }
                     // Instantiate the xhr
                     xhr = MAG._REQUEST._xhr();
@@ -1431,6 +1497,7 @@ var MAG = (function () {
                     }
                     /** Set up the success callback */
                     xhr.onreadystatechange = function () {
+                        var success_response;
                         if (xhr.readyState !== 4) {
                             return;
                         }
@@ -1442,9 +1509,12 @@ var MAG = (function () {
                                 if (xhr.responseText === "") {
                                     options.success(true);
                                 } else {
-                                    options.success(
-                                        JSON.parse(xhr.responseText, true)
-                                    );
+                                    if (mime == 'json') {
+                                        success_response = JSON.parse(xhr.responseText, true);
+                                    } else {
+                                        success_response = xhr.responseText;
+                                    }
+                                    options.success(success_response);
                                 }
                             } else {
                                 // No callback, do nothing

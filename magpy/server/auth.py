@@ -377,6 +377,43 @@ class AuthWhoAmIHandler(tornado.web.RequestHandler,
         self.write(json.dumps(instance, default=json_util.default))
         self.finish()
 
+class AuthWhoAreTheyHandler(tornado.web.RequestHandler,
+                        DatabaseMixin):
+    @tornado.web.asynchronous
+    def get(self):
+        if self.get_argument('ids', None):
+            ids = json.loads(self.get_argument('ids')[5:])
+            #self.resolve_ids_to_names(ids)
+            coll = self.get_collection('_user')
+            callback = partial(self._build_dictionary)
+            coll.find(spec={'_id': {'$in': ids}}).to_list(callback=callback)
+        else:
+            self.set_header("Content-Type", "application/json; charset=UTF-8")
+            self.write(json.dumps({}, default=json_util.default))
+            self.finish()
+            return
+        
+    def resolve_ids_to_names(self, ids):
+        coll = self.get_collection('_user')
+        callback = partial(self._build_dictionary)
+        coll.find(spec={'_id': {'$in': ids}}).to_list(callback=callback)
+        
+        
+    def _build_dictionary(self, result, error):
+        resolved = {}
+        for entry in result:
+            if 'name' in entry.keys():
+                resolved[entry['_id']] = entry['name']
+            elif 'last_name' in entry.keys():
+                resolved[entry['_id']] = entry['last_name']
+            elif 'first_name' in entry.keys():
+                resolved[entry['_id']] = entry['first_name']
+            else:
+                resolved[entry['_id']] = entry['_id']
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.write(json.dumps(resolved, default=json_util.default))
+        self.finish()
+        return
 
 class AuthLogoutHandler(tornado.web.RequestHandler):
     """Handle logouts."""
