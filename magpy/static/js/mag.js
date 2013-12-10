@@ -540,7 +540,6 @@ var MAG = (function () {
                         callback = options.success;
                         options.success = function (data) {
                             MAG._REST.cache_api_data(data);
-                            callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
 
@@ -1477,6 +1476,7 @@ var MAG = (function () {
                     }
                     // Instantiate the xhr
                     xhr = MAG._REQUEST._xhr();
+
                     /*
                       if (progressSupport){
                       xhr.onloadstart = this.loadstart.bind(this);
@@ -1533,7 +1533,6 @@ var MAG = (function () {
                             }
                         }
                     };
-
                     default_headers = MAG._REQUEST._default_headers;
                     /* Set the values of the HTTP request headers. */
                     for (header in default_headers) {
