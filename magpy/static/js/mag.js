@@ -540,6 +540,7 @@ var MAG = (function () {
                         callback = options.success;
                         options.success = function (data) {
                             MAG._REST.cache_api_data(data);
+                            callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
 

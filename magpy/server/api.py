@@ -650,7 +650,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
             del instance['_versional_comment']
         else:
             versional_comment = "Instance created"
-            
+
         if files is None:
             save_cb = None
         else:
