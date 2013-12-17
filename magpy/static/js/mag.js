@@ -899,14 +899,20 @@ var MAG = (function () {
                     for (item in localStorage) {
                         if (localStorage.hasOwnProperty(item)) {
                             if (item.indexOf('/auth/') !== -1) {
-                                delete localStorage[item];
+                            	return localStorage.removeItem(item);
+                            	//this is no longer supported in FF. Replaced by line above
+                                //delete localStorage[item];
                             }
                         }
                     }
                 },
                 
                 /** Resolve a list of user ids to real names
-                 * 
+                 * ids a list of user ids to resolve
+                    options - dictionary of optional arguments:
+                    options.success
+                    options.error
+                    options.force_reload
                  *  */
                 resolve_user_ids: function (ids, options) {
                     if (typeof options === "undefined") {
@@ -1402,7 +1408,9 @@ var MAG = (function () {
                             [data._model, data._id]
                         );
                     if (localStorage[storagekey] !== 'undefined') {
-                        delete localStorage[storagekey];
+                    	return localStorage.removeItem(storagekey);
+                    	//this is no longer supported in FF. Replaced by line above
+                        //delete localStorage[storagekey];
                     }
                 },
                 /** Delete multiple cached data by ids */
@@ -1416,7 +1424,9 @@ var MAG = (function () {
                     for (i = 0; i < length; i += 1) {
                         instance_key = storagekey + ids[i] + '/';
                         if (localStorage[instance_key] !== 'undefined') {
-                            delete localStorage[instance_key];
+                        	return localStorage.removeItem(instance_key);
+                        	//this is no longer supported in FF. Replaced by line above
+                            //delete localStorage[instance_key];
                         }
                     }
                 }
@@ -1471,6 +1481,7 @@ var MAG = (function () {
                     }
                     // Instantiate the xhr
                     xhr = MAG._REQUEST._xhr();
+
                     /*
                       if (progressSupport){
                       xhr.onloadstart = this.loadstart.bind(this);
@@ -1527,7 +1538,6 @@ var MAG = (function () {
                             }
                         }
                     };
-
                     default_headers = MAG._REQUEST._default_headers;
                     /* Set the values of the HTTP request headers. */
                     for (header in default_headers) {
@@ -2090,9 +2100,13 @@ var MAG = (function () {
                  * text_keys = a string, list of strings or object with numbered keys, to use as text of option,
                  *              falls through list until it finds one in the data or comma separates numbered fields is object
                  * selected_option_value = optional argument to say which of the options should be selected */
-                populate_select: function (data, select, value_key, text_keys, selected_option_value) {
+                populate_select: function (data, select, value_key, text_keys, selected_option_value, add_select) {
                     var options, i, j, template, mapping, text_key, inner_template, inner_template_list, option_text, inner_mapping;
-                    options = '<option value="none">select</option>';
+                    if (typeof add_select === 'undefined' || add_select === true) {
+                        options = '<option value="none">select</option>';                        
+                    } else {
+                    	options = '';
+                    }
                     template = '<option value="{val}"{select}>{text}</option>';
                     for (i = 0; i < data.length; i += 1) {
                         //sort out fall through to a key which does exist if text_keys is an array
@@ -2223,7 +2237,6 @@ var MAG = (function () {
                                         key = elem.id.replace(prefix, '');
                                     }
                                     subjson = MAG.FORMS.serialize_form(form_id, subelems, elem.id + '_');
-                                    console.log(subjson)
                                     if (!MAG.TYPES.is_empty_object(subjson)) {
                                         if (MAG.ELEMENT.has_className(elem, 'objectlist')) {
                                             try {
@@ -2430,7 +2443,9 @@ var MAG = (function () {
                     newoptions = {'success': function(response) {
                         for (item in localStorage) {
                             if (item.indexOf('/api/' + form_id.replace('_form', '')) !== -1) {
-                                delete localStorage[item];
+                            	return localStorage.removeItem(item);
+                            	//this is no longer supported in FF. Replaced by line above
+                            	//delete localStorage[item];
                             }
                         }
                         if (typeof options.success != "undefined") {

@@ -176,6 +176,10 @@ class ModelValidator(object):
         except KeyError:
             pass
         try:
+            instance_keys.remove('_file_data')
+        except KeyError:
+            pass
+        try:
             instance_keys.remove('_meta')
         except KeyError:
             pass

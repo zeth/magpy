@@ -4,6 +4,8 @@ from __future__ import print_function
 from datetime import datetime
 from copy import deepcopy
 import json
+import re
+import base64
 
 import tornado.web
 from bson import json_util
@@ -426,9 +428,37 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                     next_instance,
                     callback=self._update_instances_sequentially)
 
+    #for files we may need to remove permission required setting not sure when that kicks in
     @tornado.web.asynchronous
     @permission_required('create')
     def post(self, resource):
+        """Create a new instance.
+        Start by looking if it already exists!"""
+        data = json.loads(self.request.body,
+                          object_hook=json_util.object_hook)
+        if isinstance(data, dict):
+            
+            if not '_id' in data:
+                # Skip straight on
+                self.validate_instance(data, self._create_instance)
+            else:
+                callback = partial(self._process_post, data=data)
+                coll = self.get_collection(resource)
+                coll.find_one({'_id': data['_id']},
+                              callback=callback)
+        else :
+            for object in data:
+                if not '_id' in object:
+                    # Skip straight on
+                    self.validate_instance(object, self._create_instance)
+                else:
+                    callback = partial(self._process_post, data=object)
+                    coll = self.get_collection(resource)
+                    coll.find_one({'_id': object['_id']},
+                                  callback=callback)
+    @tornado.web.asynchronous
+    @permission_required('create')              
+    def _post_JSON(self, resource):
         """Create a new instance.
         Start by looking if it already exists!"""
         data = json.loads(self.request.body,
@@ -452,6 +482,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                     coll = self.get_collection(resource)
                     coll.find_one({'_id': object['_id']},
                                   callback=callback)
+        
 
     def _process_post(self, result, error, data):
         """Only create a new one if it does not exist."""
@@ -576,6 +607,8 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
 
     def _create_instance(self, instance):
         """Create an instance."""
+        
+
         success = partial(self._do_create_instance,
                           instance=instance)
         failure = partial(self._do_create_instance,
@@ -591,7 +624,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         if not user:
             user = {"_id": "unknown",
                     "name": "unknown"}
-
+            
         if '_id' not in instance:
             instance['_id'] = str(ObjectId())
         instance['_meta'] = {'_created_time': datetime.now(),
@@ -599,18 +632,56 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                              '_last_modified_by': user['_id'],
                              '_last_modified_by_display': user['name'],
                              '_version': 1}
-
+        files = None
+        if '_file_data' in instance:
+            files = instance['_file_data']
+            for label in files:
+                meta, content = files[label].split(',', 1)
+                ext_m = re.match("data:.*?/(.*?);base64", meta)
+                if not ext_m:
+                    raise ValueError("Can't parse base64 file data ({})".format(meta))
+                filename = '/media/%s/%s_%s.%s' % (instance['_model'], instance['_id'], label, ext_m.group(1))
+                if label in instance:
+                    instance[label] = filename
+            del instance['_file_data']
+            
         if '_versional_comment' in instance:
             versional_comment = instance['_versional_comment']
             del instance['_versional_comment']
         else:
             versional_comment = "Instance created"
 
+        if files is None:
+            save_cb = None
+        else:
+            save_cb = partial(self._save_files,
+                              instance=instance,
+                              files=files)
         callback = partial(self.add_version_to_history,
-                           instance=instance,
-                           versional_comment=versional_comment)
+                       instance=instance,
+                       versional_comment=versional_comment,
+                       callback=save_cb)
+
         instance_collection.insert(instance,
                                    callback=callback)
+        
+    def _save_files(self, response,  # pylint: disable-msg=W0613
+                               error=None,
+                               instance=None,
+                               files=None):
+        for file in files:
+            meta, content = files[file].split(',', 1)
+            ext_m = re.match("data:.*?/(.*?);base64", meta)
+            if not ext_m:
+                raise ValueError("Can't parse base64 file data ({})".format(meta))
+            assert instance[file].startswith('/media/')
+            filename = instance[file][7:]
+            real_content = base64.b64decode(content)
+            with open('/srv/vmr/workspace/mediamanager/restricted/' + filename,  'w') as f:
+                f.write(real_content)
+            
+        return self._return_data(instance)
+        
 
     def _return_main_data(self, response, error, data):
         """Return the data without the response."""
