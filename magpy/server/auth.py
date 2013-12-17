@@ -62,7 +62,8 @@ class AuthenticationMixin(object):
 
     def check_permissions(self,
                           success,
-                          failure=None):  # pylint: disable=W0221
+                          failure=None,
+                          permissions=None):  # pylint: disable=W0221
         """Check that the user is allowed to use the resources
         defined in permissions.
         permissions - a dictionary with each entry having a
@@ -72,8 +73,9 @@ class AuthenticationMixin(object):
         success - the callback to run on success.
         failure - the callback to run on failure.
         """
-        permissions = {arg: dejsonify(self.request.arguments[arg][0])
-                       for arg in self.request.arguments}
+        if not permissions:
+            permissions = {arg: dejsonify(self.request.arguments[arg][0])
+                           for arg in self.request.arguments}
         if not failure:
             failure = self.permission_denied
 
