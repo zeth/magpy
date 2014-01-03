@@ -5,6 +5,7 @@ from datetime import datetime
 from copy import deepcopy
 import json
 import re
+import os
 import base64
 
 import tornado.web
@@ -836,14 +837,48 @@ class ResourceHandler(tornado.web.RequestHandler,
             '_versional_comment': versional_comment,
             '_operation': 'delete'
             }
+        
+        callback = partial(self._get_model,
+                           resource=resource,
+                           objectid=objectid)
 
-        self.add_version_to_history(version,
-                                    self._do_delete)
+        self.add_version_to_history(version, callback)
+        
+    @tornado.web.asynchronous
+    #TODO: write error function
+    def _get_model(self, response, error, instance, resource, objectid):
+        coll = self.get_collection('_model')
+        success = partial(self._check_files_in_model,
+                          resource=resource,
+                          objectid=objectid)
+        coll.find({'_id': resource}).to_list(callback=success)
+        
+    def _check_files_in_model(self, response, error, resource, objectid):
+        if '_file_fields' in response[0]:
+            self._get_instances(response[0]['_file_fields']['fields'], resource, objectid)
+        else:
+            self._do_delete({'_model': resource, '_id': objectid})
+            
+    
+    def _get_instances(self, file_fields, resource, objectid):
+        success = partial(self._delete_files,
+                           file_fields=file_fields,
+                           resource=resource,
+                           objectid=objectid)
+        coll = self.get_collection(resource)
+        coll.find({'_id': objectid}).to_list(callback=success)
+
+        
+    def _delete_files(self, response, error, file_fields, resource, objectid):
+        for json in response:
+            for field in file_fields:
+                file = json[field].replace('/media/', '/srv/vmr/workspace/mediamanager/restricted/')
+                if os.path.isfile(file):
+                    os.unlink(file)
+        self._do_delete({'_model': resource, '_id': objectid})
 
     @tornado.web.asynchronous
     def _do_delete(self,
-                   response,
-                   error=None,
                    instance=None):  # pylint: disable-msg=W0613
         """Do the deletion."""
         coll = self.get_collection(instance['_model'])
