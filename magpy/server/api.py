@@ -52,7 +52,12 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                 '_model': resource,
                 } for objectid in data['ids']]
         versional_comment = data.get('_versional_comment')
-        callback = partial(self._do_multiple_delete,
+       
+#         callback = partial(self._do_multiple_delete,
+#                            ids=data['ids'],
+#                           resource=resource)
+
+        callback = partial(self._get_model,
                            ids=data['ids'],
                            resource=resource)
 
@@ -60,10 +65,40 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                             'delete',
                             callback,
                             versional_comment)
+        
+    
+    def _get_model(self, response, error, ids, resource):
+        coll = self.get_collection('_model')
+        success = partial(self._check_files_in_model,
+                          resource=resource,
+                          ids=ids)
+        coll.find({'_id': resource}).to_list(callback=success)
+        
+    def _check_files_in_model(self, response, error, resource, ids):
+        if '_file_fields' in response[0]:
+            self._get_instances(response[0]['_file_fields']['fields'], resource, ids)
+        else:
+            self._do_multiple_delete(ids, resource)
+
+    def _get_instances(self, file_fields, resource, ids):
+        success = partial(self._delete_files,
+                           file_fields=file_fields,
+                           resource=resource,
+                           ids=ids)
+        coll = self.get_collection(resource)
+        coll.find({'_id': {'$in': tuple(ids)}}).to_list(callback=success)
+
+        
+    def _delete_files(self, response, error, file_fields, resource, ids):
+        for json in response:
+            for field in file_fields:
+                file = json[field].replace('/media/', '/srv/vmr/workspace/mediamanager/restricted/')
+                if os.path.isfile(file):
+                    os.unlink(file)
+        self._do_multiple_delete(ids, resource)
 
     @tornado.web.asynchronous
-    def _do_multiple_delete(self, response, error=None,
-                            ids=None, resource=None):
+    def _do_multiple_delete(self, ids=None, resource=None):
         """Delete the instances named in ids."""
         print("Superdif", ids)
 
@@ -93,7 +128,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                           data=data)
         return self.who_am_i(success, failure)
 
-    def _validate_update(self, user, resource, data):
+    def _validate_update(self, user, error, resource, data):
         """Update instances by field."""
         if not user:
             user = {'_id': 'unknown', 'name': 'unknown'}
@@ -200,7 +235,6 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
     def put(self, resource):
         """Update multiple instances
         Starting by getting the relevant model."""
-
         # Send fields a different way altogether
         data = json.loads(self.request.body,
                           object_hook=json_util.object_hook)
@@ -219,12 +253,13 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         success = partial(self._get_previous_instance_ids,
                           model=model)
         failure = partial(self._get_previous_instance_ids,
+                          error=None,
                           user={"_id": "unknown",
-                                "name": "unknown"},
+                                 "name": "unknown"},
                           model=model)
         return self.who_am_i(success, failure)
 
-    def _get_previous_instance_ids(self, user, model):
+    def _get_previous_instance_ids(self, user, error, model):
         """Now we have the user and the model,
         we need the previous user ids."""
         if not user:
@@ -845,7 +880,6 @@ class ResourceHandler(tornado.web.RequestHandler,
         self.add_version_to_history(version, callback)
         
     @tornado.web.asynchronous
-    #TODO: write error function
     def _get_model(self, response, error, instance, resource, objectid):
         coll = self.get_collection('_model')
         success = partial(self._check_files_in_model,
@@ -855,12 +889,12 @@ class ResourceHandler(tornado.web.RequestHandler,
         
     def _check_files_in_model(self, response, error, resource, objectid):
         if '_file_fields' in response[0]:
-            self._get_instances(response[0]['_file_fields']['fields'], resource, objectid)
+            self._get_instance(response[0]['_file_fields']['fields'], resource, objectid)
         else:
             self._do_delete({'_model': resource, '_id': objectid})
             
     
-    def _get_instances(self, file_fields, resource, objectid):
+    def _get_instance(self, file_fields, resource, objectid):
         success = partial(self._delete_files,
                            file_fields=file_fields,
                            resource=resource,
@@ -891,14 +925,6 @@ class ResourceHandler(tornado.web.RequestHandler,
         self.return_instance({'success': True,
                               '_id': instance['_id'],
                               '_model': instance['_model']})
-
-    def return_instance(self, result, error=None):
-        """Return a single instance or anything else that can become JSON."""
-        if not result:
-            raise tornado.web.HTTPError(404)
-        self.set_header("Content-Type", "application/json; charset=UTF-8")
-        self.write(json.dumps(result, default=json_util.default))
-        self.finish()
 
     @tornado.web.asynchronous
     @permission_required('update')
@@ -936,7 +962,7 @@ class ResourceHandler(tornado.web.RequestHandler,
                            new_instance=new_instance)
         coll.find_one({'_id': new_instance['_id']},
                       callback=callback)
-
+        
     @tornado.web.asynchronous
     def _check_update(self, old_instance, error, new_instance):
         """Check who are we then check update."""
@@ -979,25 +1005,72 @@ class ResourceHandler(tornado.web.RequestHandler,
             '_last_modified_by_display': user['name'],
             '_version': old_meta['_version'] + 1,
             }
-
+        
+        files = None
+        if '_file_data' in new_instance:
+            files = new_instance['_file_data']
+            for_delete = []
+            for label in files:
+                meta, content = files[label].split(',', 1)
+                ext_m = re.match("data:.*?/(.*?);base64", meta)
+                if not ext_m:
+                    raise ValueError("Can't parse base64 file data ({})".format(meta))
+                filename = '/media/%s/%s_%s.%s' % (new_instance['_model'], new_instance['_id'], label, ext_m.group(1))
+                if label in new_instance:
+                    for_delete.append(old_instance[label])
+                    new_instance[label] = filename
+            files['_delete'] = for_delete
+            del new_instance['_file_data']
+        
         if not '_versional_comment' in new_instance:
             new_instance['_versional_comment'] = 'Instance updated'
         new_instance['_operation'] = 'update'
         # The update is new, so lets validate it
-        success = partial(self.add_version_to_history,
-                          callback=self.update_instance)
+        success = partial(self.update_instance,
+                          files=files,                        
+                          )
 
         self.validate_instance(new_instance, success)
 
     @tornado.web.asynchronous
-    def update_instance(self, response, error, instance):
+    def update_instance(self, instance, files):
         """Update an instance."""
         # pylint: disable-msg=W0613
         instance_collection = self.get_collection(instance['_model'])
-        callback = self.return_instance(instance)
+        if not files:
+            save_cb = None
+        else:
+            save_cb = partial(self._save_files,
+                              instance=instance,
+                              files=files)
+        callback = self.add_version_to_history(instance, save_cb)
         instance_collection.update({'_id': instance['_id']},
                                    instance,
                                    callback=callback)
+
+    def _save_files(self, response,  # pylint: disable-msg=W0613
+                               error=None,
+                               instance=None,
+                               files=None):
+        if '_delete' in files:
+            for file in files['_delete']:
+                filepath = file.replace('/media/', '/srv/vmr/workspace/mediamanager/restricted/')
+                if os.path.isfile(filepath):
+                    os.unlink(filepath)
+        del files['_delete']
+        for file in files:
+            meta, content = files[file].split(',', 1)
+            ext_m = re.match("data:.*?/(.*?);base64", meta)
+            if not ext_m:
+                raise ValueError("Can't parse base64 file data ({})".format(meta))
+            assert instance[file].startswith('/media/')
+            filename = instance[file][7:]
+            real_content = base64.b64decode(content)
+            with open('/srv/vmr/workspace/mediamanager/restricted/' + filename,  'w') as f:
+                f.write(real_content)
+            
+        return self.return_instance(instance)
+
 
     @tornado.web.asynchronous
     def add_version_to_history(self, instance, callback=None):
@@ -1008,7 +1081,7 @@ class ResourceHandler(tornado.web.RequestHandler,
         del instance['_versional_comment']
 
         if not callback:
-            insert_callback = partial(self.return_instance,
+            insert_callback = partial(self._return_main_instance,
                                       instance=instance)
         else:
             insert_callback = partial(callback,
@@ -1018,3 +1091,16 @@ class ResourceHandler(tornado.web.RequestHandler,
                             operation,
                             insert_callback,
                             versional_comment)
+        
+    def return_instance(self, result, error=None):
+        """Return a single instance or anything else that can become JSON."""
+        if not result:
+            raise tornado.web.HTTPError(404)
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        self.write(json.dumps(result, default=json_util.default))
+        self.finish()
+        
+    def _return_main_instance(self, response, error, instance):
+        """Return the data without the response."""
+        # pylint: disable-msg=W0613
+        return self.return_instance(instance)

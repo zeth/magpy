@@ -610,7 +610,6 @@ var MAG = (function () {
                     options.error - callback function for error
                     options.comment - optional comment
                 */
-
                 delete_resources: function (resource,
                                             ids,
                                             options) {

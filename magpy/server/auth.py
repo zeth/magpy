@@ -299,10 +299,12 @@ class AuthenticationMixin(object):
             return failure()
 
     @staticmethod
-    def permission_denied():
+    def permission_denied(details=None):
         """The user should not access this resource.
         A useful default failure callback."""
+        # TODO: do something with details
         raise tornado.web.HTTPError(401)
+
 
 
 class AuthPermissionsHandler(tornado.web.RequestHandler,
