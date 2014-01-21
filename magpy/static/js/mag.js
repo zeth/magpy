@@ -2143,21 +2143,27 @@ var MAG = (function () {
                     select.innerHTML = options;
                 },
 
-
                 get_value: function (elem) {
                     var value;
                     value = null;
                     if ((elem.tagName === 'INPUT' && (elem.type !== 'checkbox' && elem.type !== 'radio')) || elem.tagName === 'TEXTAREA') {
-                        if (elem.value !== '') {
+                        if (elem.value !== '' && typeof elem.value !== 'undefined' && elem.value !== null ) {
                             value = elem.value;
                             if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
                                 value = value.split('|');
-                            } else {
-                                if (MAG.ELEMENT.has_className(elem, 'integer')) {
+                            } else if (MAG.ELEMENT.has_className(elem, 'integer')) {
                                     value = parseInt(value, 10);
-                                } else if (MAG.ELEMENT.has_className(elem, 'datetime')) {
+                            } else if (MAG.ELEMENT.has_className(elem, 'datetime')) {
                                     value = {'$date': parseInt(value)};
-                                }
+                            } else if (MAG.ELEMENT.has_className(elem, 'boolean')) {
+                            	//TODO: user value.toLowerCase() but for some reason
+                            	//despite value being a string it gives typeerrors at the mo.
+                        		if (value === 'true') {
+                            		value = true;
+                            	}
+                            	if (value === 'false') {
+                            		value = false;
+                            	}             	
                             }
                         }
                     } else {
