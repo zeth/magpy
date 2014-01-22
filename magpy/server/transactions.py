@@ -22,17 +22,18 @@ class TransactionUpdateHandler(tornado.web.RequestHandler,
     """Given a model_name and an objectid, get all history newer than that."""
     @tornado.web.asynchronous
     def get(self, model_name, objectid):  # pylint: disable=W0221
-        print "model name is", model_name
-        print "object id is", objectid
+        print ("model name is", model_name)
+        print ("object id is", objectid)
 
         history = self.get_collection('_history')
         history.find({'document_model': model_name,
                       '_id': {'$gt': ObjectId(objectid)}}).to_list(
-            callback=self._return_instance)
+                          length=32767,
+                          callback=self._return_instance)
 
     def _return_instance(self, instance, error=None):
         """Return a single instance or anything else that can become JSON."""
-        print "instance is", instance
+        print ("instance is", instance)
         self.set_header("Content-Type", "application/json; charset=UTF-8")
         self.write(json.dumps(instance, default=json_util.default))
         self.finish()
@@ -45,23 +46,27 @@ class TransactionSyncHandler(tornado.web.RequestHandler,
     current collection version numbers. """
     @tornado.web.asynchronous
     def get(self, app_name):  # pylint: disable=W0221
+        print ("1. me me")
         return self.find_relevant_models(app_name)
 
     def find_relevant_models(self, app_name):
         """Find the relevant models for the app."""
+        print ("2. me me")
         models = self.get_collection('_model')
         models.find({'_applications': app_name},
                     fields=['_id', ]).to_list(
-            callback=self.find_all_last_instances)
+                        callback=self.find_all_last_instances)
 
     def find_all_last_instances(self, models, error=None):
         """Find all the last instances of the models."""
+        print ("3. me me")
         model_names = [model['_id'] for model in models]
         return self.find_the_next_one(
             None, None, model_names, [], model_names)
 
     def find_the_next_one(self, result, error, remaining, results, models):
         """Find the next instance in remaining models."""
+        print ("4. me me")
         if result:
             results.append(result)
         if remaining:
@@ -81,6 +86,7 @@ class TransactionSyncHandler(tornado.web.RequestHandler,
 
     def find_the_last_use(self, model_name, callback):
         """Find the last use of the model in the history."""
+        print ("5. me me")
         history = self.get_collection('_history')
         history.find_one({'document_model': model_name},
                          sort=[('_id', DESCENDING)],
@@ -89,6 +95,7 @@ class TransactionSyncHandler(tornado.web.RequestHandler,
 
     def _return_instance(self, instance, error=None):
         """Return a single instance or anything else that can become JSON."""
+        print ("6. me me")
         self.set_header("Content-Type", "application/json; charset=UTF-8")
         self.write(json.dumps(instance, default=json_util.default))
         self.finish()
