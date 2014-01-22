@@ -5,14 +5,24 @@ import json
 from bson import json_util
 import base64
 import uuid
-
+import six
 
 def dejsonify(value):
     """Converts from JSON when it is JSON, otherwise return it."""
-    if value.startswith('JSON:'):
-        value = value.strip('JSON:')
-        value = json.loads(value,
-                           object_hook=json_util.object_hook)
+    if six.PY2:
+        if value.startswith('JSON:'):
+            value = value.strip('JSON:')
+            value = json.loads(value,
+                               object_hook=json_util.object_hook)
+    else:
+        # Weird things in Python 3 happening with types
+        # Seems to start as bytes
+        if value.startswith(b'JSON:'):
+            value = value.strip(b'JSON:')
+            # But the next line seems to want a unicode str
+            value = value.decode(encoding='UTF-8')
+            value = json.loads(value,
+                               object_hook=json_util.object_hook)
     return value
 
 
