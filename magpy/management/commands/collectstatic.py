@@ -39,8 +39,11 @@ class Command(BaseCommand):
 
         # 1. Get the list of applications
         apps = database.get_app_list()
-        apps.append('magpy')
-
+        if apps:
+            apps.append('magpy')
+        else:
+            apps = ['magpy']
+            
         # 2. Build a dictionary of static file names
         static_files = []
         for app in apps:
@@ -87,7 +90,8 @@ class Command(BaseCommand):
             return
         if not loader:
             return
-        return os.path.join(loader.filename, 'static')
+        path = os.path.split(loader.get_filename())[0]
+        return os.path.join(path, 'static')
 
     @staticmethod
     def get_filenames(path, target, app, appify):
