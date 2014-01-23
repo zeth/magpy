@@ -382,7 +382,14 @@ if (typeof location === 'undefined') {
 }
 
 if (typeof localStorage === 'undefined') {
-    localStorage = {};
+    localStorage = {
+        setItem: function() {},
+        removeItem: function() {},
+        key: function() {},
+        getItem: function() {},
+        removeItem: function() {},
+        length: 0
+};
 }
 """
 
