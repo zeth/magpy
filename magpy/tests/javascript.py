@@ -387,7 +387,7 @@ if (typeof localStorage === 'undefined') {
         removeItem: function() {},
         key: function() {},
         getItem: function() {},
-        removeItem: function() {},
+        removeItem: function(key) {return delete this[key]},
         length: 0
 };
 }

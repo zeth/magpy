@@ -20,11 +20,23 @@ from magpy.tests.javascript import JavaScriptTestCase
 
 class RavenTestCase(JavaScriptTestCase):
     """Load the Raven file into the session."""
+    _delay = 0.5
+
     def setUp(self):  # pylint: disable=C0103
         super(RavenTestCase, self).setUp()
         magjs = os.path.join(get_mag_path(), 'static/js/mag.js')
         self.load(magjs)
         self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
+
+    def sleep(self,
+              delay=None):
+        """Pause to avoid database race conditions."""
+        if not delay:
+            delay = self._delay
+
+        print("%s sec delay to give the database time . . ." % delay, end=' ')
+        time.sleep(delay)
+        print(". . now we continue")
 
 
 class RavenTopLevelTestCase(RavenTestCase):
@@ -360,6 +372,9 @@ class RavenUnderscoreRestTestCase(RavenTestCase):
         data_string = self.eval(
             'typeof localStorage["api:http://localhost/api/author/'
             'Suess/"] === "undefined"')
+        data_string_text = self.eval(
+            'localStorage["api:http://localhost/api/author/Suess/"]')
+
         self.assertIs(data_string, True)
 
 
@@ -399,7 +414,6 @@ class RavenRequestTestCase(RavenTestCase):
 
 class RavenRestTestCase(RavenTestCase):
     """Test the REST module functions."""
-    _delay = 0.5
 
     def setUp(self):  # pylint: disable=C0103
         """Open a database connection."""
@@ -418,16 +432,6 @@ class RavenRestTestCase(RavenTestCase):
     def tearDown(self):  # pylint: disable=C0103
         """Close the database."""
         self.collection.remove()
-
-    def sleep(self,
-              delay=None):
-        """Pause to avoid database race conditions."""
-        if not delay:
-            delay = self._delay
-
-        print("%s sec delay to give the database time . . ." % delay, end=' ')
-        time.sleep(delay)
-        print(". . now we continue")
 
     def test_create_resource(self):
         """Test create_resource."""
