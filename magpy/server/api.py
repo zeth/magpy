@@ -128,8 +128,16 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
                           data=data)
         return self.who_am_i(success, failure)
 
-    def _validate_update(self, user, error, resource, data):
+    def _validate_update(self, user, error=None, resource=None, data=None):
         """Update instances by field."""
+        # What is going on with the args here? Is error ever given?
+
+        if not resource:
+            raise tornado.web.HTTPError(400, "No resource name given.")
+
+        if not data:
+            raise tornado.web.HTTPError(400, "Insufficient data in request.")
+
         if not user:
             user = {'_id': 'unknown', 'name': 'unknown'}
 
