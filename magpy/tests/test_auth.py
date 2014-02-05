@@ -5,7 +5,7 @@ import unittest
 import time
 
 from magpy.server.instances import InstanceLoader
-from magpy.tests.test_ravenjs import open_test_collection, RavenTestCase
+from magpy.tests.test_magjs import open_test_collection, MagTestCase
 
 UNAUTHORISED = 'HTTPError: HTTP Error 401: Unauthorized'
 NOTFOUND = 'HTTPError: HTTP Error 404: Not Found'
@@ -31,12 +31,12 @@ MOCK_AUTH_MODELS = (
         },
 )
 
-class RavenUnauthorisedAuthTestCase(RavenTestCase):
+class MagUnauthorisedAuthTestCase(MagTestCase):
     """Check that the auth module blocks requests as Unauthorized."""
     _delay = 0.5
     def setUp(self):  # pylint: disable=C0103
         """Open a database connection."""
-        super(RavenUnauthorisedAuthTestCase, self).setUp()
+        super(MagUnauthorisedAuthTestCase, self).setUp()
         # Create a new test model
         instance_loader = InstanceLoader(
             database='test',
@@ -65,7 +65,7 @@ class RavenUnauthorisedAuthTestCase(RavenTestCase):
         """Test that we cannot create_resource."""
         self.eval('new_data = {"_model": "auth_test", "name": "create_test" }')
         response = self.eval(
-                'RAVEN.REST.create_resource("auth_test", new_data)')
+                'MAG.REST.create_resource("auth_test", new_data)')
         self.assertEquals(response.splitlines()[-1],
                           UNAUTHORISED)
 
@@ -73,7 +73,7 @@ class RavenUnauthorisedAuthTestCase(RavenTestCase):
         """Test update_resource."""
 
         response = self.eval(
-            'RAVEN.REST.update_resource('
+            'MAG.REST.update_resource('
             '"auth_test",'
             '{_model: "auth_test",'
             '_id: "update_test",'
@@ -89,7 +89,7 @@ class RavenUnauthorisedAuthTestCase(RavenTestCase):
             '_id': 'delete_test',
             'name': 'first_version'})
         response = self.eval(
-                'RAVEN.REST.delete_resource("test", "delete_test")')
+                'MAG.REST.delete_resource("test", "delete_test")')
         self.assertEquals(response,
                           None)
         self.assertEquals(
@@ -111,7 +111,7 @@ class RavenUnauthorisedAuthTestCase(RavenTestCase):
              u'name': u'first_version'})
 
         response = self.eval(
-                'RAVEN.REST.apply_to_resource("test", "read_test")')
+                'MAG.REST.apply_to_resource("test", "read_test")')
         self.assertEquals(response.splitlines()[-1],
                           NOTFOUND)
 

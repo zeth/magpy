@@ -6,30 +6,30 @@ import os
 import unittest
 from magpy.tests.javascript import JavaScriptTestCase
 from magpy.server.instances import InstanceLoader
-from magpy.tests.test_ravenjs import open_test_collection
+from magpy.tests.test_magjs import open_test_collection
 from magpy.server.utils import get_mag_path
 
 # pylint: disable=R0904
 
 
-class RavenTestCase(JavaScriptTestCase):
-    """Load the Raven file into the session."""
+class MagTestCase(JavaScriptTestCase):
+    """Load the Mag file into the session."""
     def setUp(self):  # pylint: disable=C0103
-        super(RavenTestCase, self).setUp()
+        super(MagTestCase, self).setUp()
         magjs = os.path.join(get_mag_path(), 'static/js/mag.js')
         self.load(magjs)
-        self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
+        self.eval('MAG._REQUEST._default_headers["X-UnitTest"] = "True";')
 
 from magpy.tests.test_validators import EMBEDDED_MODELS, TEST_ARTICLE
 from magpy.server.database import Database
 
 
-class RavenEmbedTestCase(RavenTestCase):
+class MagEmbedTestCase(MagTestCase):
     """Test an embedded instance."""
 
     def setUp(self):  # pylint: disable=C0103
         """Open a database connection and load the models."""
-        super(RavenEmbedTestCase, self).setUp()
+        super(MagEmbedTestCase, self).setUp()
 
         # Create test models
         EMBEDDED_MODELS['article']['_permissions'] = {
@@ -50,10 +50,10 @@ class RavenEmbedTestCase(RavenTestCase):
         collection.remove()
 
     def test_create_resource(self):
-        """Test RAVEN._REST.get_api_url()."""
+        """Test MAG._REST.get_api_url()."""
         self.eval('new_data = %s;' % TEST_ARTICLE)
         self.assertIs(self.eval(
-               'RAVEN.REST.create_resource("article", new_data)'), None)
+               'MAG.REST.create_resource("article", new_data)'), None)
         #resource = self.collection.find_one()
         #self.assertEquals(resource['_model'], u'_test')
         #self.assertEquals(resource['name'], u'create_test')

@@ -18,15 +18,15 @@ from magpy.tests.javascript import JavaScriptTestCase
 # pylint: disable=R0904
 
 
-class RavenTestCase(JavaScriptTestCase):
-    """Load the Raven file into the session."""
+class MagTestCase(JavaScriptTestCase):
+    """Load the Mag file into the session."""
     _delay = 0.5
 
     def setUp(self):  # pylint: disable=C0103
-        super(RavenTestCase, self).setUp()
+        super(MagTestCase, self).setUp()
         magjs = os.path.join(get_mag_path(), 'static/js/mag.js')
         self.load(magjs)
-        self.eval('RAVEN._REQUEST._default_headers["X-UnitTest"] = "True";')
+        self.eval('MAG._REQUEST._default_headers["X-UnitTest"] = "True";')
 
     def sleep(self,
               delay=None):
@@ -39,146 +39,146 @@ class RavenTestCase(JavaScriptTestCase):
         print(". . now we continue")
 
 
-class RavenTopLevelTestCase(RavenTestCase):
+class MagTopLevelTestCase(MagTestCase):
     """Test the top level of the module."""
     def test_version(self):
         """Check what version we are testing."""
-        self.assertEqual(self.eval('RAVEN.get_version();'), '0.2')
+        self.assertEqual(self.eval('MAG.get_version();'), '0.2')
 
 
-class RavenFuncToolsTestCase(RavenTestCase):
+class MagFuncToolsTestCase(MagTestCase):
     """Test the FUNCTOOLS submodule."""
     def test_attempt(self):
-        """Test RAVEN.FUNCTOOLS.attempt.
+        """Test MAG.FUNCTOOLS.attempt.
         We make the first function throw a Javascript exception.
         The second is successful, so its return value should be returned."""
         self.assertEqual(
-            self.eval('RAVEN.FUNCTOOLS.attempt(function() {throw new E'
+            self.eval('MAG.FUNCTOOLS.attempt(function() {throw new E'
                               'rror("This first function is wrong")}, function'
                               '() {return "success"});'),
             'success')
 
     def test_get_function_from_string(self):
-        """Test RAVEN.FUNCTOOLS.get_function_from_string.
+        """Test MAG.FUNCTOOLS.get_function_from_string.
         This should get the get_api_url function and then run it."""
         self.assertEqual(
-            self.eval("RAVEN.FUNCTOOLS.get_function_from_string("
-                              "'RAVEN._REST.get_api_url')();"),
+            self.eval("MAG.FUNCTOOLS.get_function_from_string("
+                              "'MAG._REST.get_api_url')();"),
             'http://localhost/api/')
 
 
-class RavenTypesTestCase(RavenTestCase):
+class MagTypesTestCase(MagTestCase):
     """Test the TYPES submodule."""
     def test_array_literal_is_array(self):
         """[] should be detected as an array."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_array([]);"),
+            self.eval("MAG.TYPES.is_array([]);"),
                               True)
 
     def test_new_array_is_array(self):
         """new Array () should be detected as an array."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_array(new Array ());"),
+            self.eval("MAG.TYPES.is_array(new Array ());"),
             True)
 
     def test_object_is_not_array(self):
         """{} should not be detected as an array."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_array({});"),
+            self.eval("MAG.TYPES.is_array({});"),
             False)
 
     def test_string_is_not_array(self):
         """A string should not be detected as an array."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_array('hello');"),
+            self.eval("MAG.TYPES.is_array('hello');"),
             False)
 
     def test_boolean_is_not_array(self):
         """true should not be detected as an array."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_array(true);"),
+            self.eval("MAG.TYPES.is_array(true);"),
             False)
 
     def test_literal_object_is_object(self):
         """{} should be detected as an object."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_object({});"),
+            self.eval("MAG.TYPES.is_object({});"),
             True)
 
     def test_new_object_is_object(self):
         """new Object() should be detected as an object."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_object(new Object());"),
+            self.eval("MAG.TYPES.is_object(new Object());"),
             True)
 
     def test_array_is_not_an_object(self):
         """[] should not be detected as an object."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_object([]);"),
+            self.eval("MAG.TYPES.is_object([]);"),
             False)
 
     def test_string_is_not_an_object(self):
         """A string should not be detected as an object."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_object('Hello');"),
+            self.eval("MAG.TYPES.is_object('Hello');"),
             False)
 
     def test_object_is_empty(self):
         """An empty object should be empty."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_empty_object({});"),
+            self.eval("MAG.TYPES.is_empty_object({});"),
             True)
 
     def test_object_is_not_empty(self):
         """Not empty objects should not be empty."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_empty_object({key: 'value'});"),
+            self.eval("MAG.TYPES.is_empty_object({key: 'value'});"),
             False)
 
     def test_integer_is_number(self):
         """An integer should be detected as a number."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_number(1);"),
+            self.eval("MAG.TYPES.is_number(1);"),
             True)
 
     def test_decimal_is_number(self):
         """A decimal number should be detected as a number."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_number(3.14159265);"),
+            self.eval("MAG.TYPES.is_number(3.14159265);"),
             True)
 
     def test_string_is_not_number(self):
         """A string should not be detected as a number."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_number('hello');"),
+            self.eval("MAG.TYPES.is_number('hello');"),
             False)
 
     def test_true_is_boolean(self):
         """true should be detected as a boolean."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_boolean(true);"),
+            self.eval("MAG.TYPES.is_boolean(true);"),
             True)
 
     def test_false_is_boolean(self):
         """false should be detected as a boolean."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_boolean(false);"),
+            self.eval("MAG.TYPES.is_boolean(false);"),
             True)
 
     def test_string_is_not_boolean(self):
         """A string should not be detected as a boolean."""
         self.assertIs(
-            self.eval("RAVEN.TYPES.is_boolean('monkey');"),
+            self.eval("MAG.TYPES.is_boolean('monkey');"),
             False)
 
 
-class RavenUrlTestCase(RavenTestCase):
+class MagUrlTestCase(MagTestCase):
     """Test the URL submodule."""
 
     def test_contains_question_mark(self):
         """A question mark in the string should be detected."""
         self.assertIs(self.eval(
-                'RAVEN.URL.contains_question_mark("http://localhost?key=val");'
+                'MAG.URL.contains_question_mark("http://localhost?key=val");'
                 ),
                       True)
 
@@ -186,27 +186,27 @@ class RavenUrlTestCase(RavenTestCase):
         """A question mark in the string should not be detected."""
         self.assertIs(
             self.eval(
-                'RAVEN.URL.contains_question_mark("http://localhost");'),
+                'MAG.URL.contains_question_mark("http://localhost");'),
             False)
 
     def test_parse_query_string(self):
         """Test the parse_query_string function."""
         arguments = self.eval(
-            'RAVEN.URL.parse_query_string("?man=Adam;woman=Eve;");')
+            'MAG.URL.parse_query_string("?man=Adam;woman=Eve;");')
         self.assertEquals(arguments['man'], "Adam")
         self.assertEquals(arguments['woman'], "Eve")
 
     def test_build_query_string(self):
         """Test the build_query_string function."""
         query_string = self.eval(
-            'RAVEN.URL.build_query_string({A: "one", B: "two", C: "three"})'
+            'MAG.URL.build_query_string({A: "one", B: "two", C: "three"})'
             )
         self.assertEquals(query_string, 'A=one;B=two;C=three')
 
     def test_build_complex_query_string(self):
         """Test the build_query_string function."""
         query_string = self.eval(
-            'RAVEN.URL.build_query_string({number: 1, '
+            'MAG.URL.build_query_string({number: 1, '
             'object: {"key": "value"}, boolean: true, '
             '"array": ["A", "B", "C"]})'
             )
@@ -219,7 +219,7 @@ class RavenUrlTestCase(RavenTestCase):
     def test_parse_complex_query_string(self):
         """Test the parse_query_string function."""
         arguments = self.eval(
-            'RAVEN.URL.parse_query_string("'
+            'MAG.URL.parse_query_string("'
             'number=JSON:1;object=JSON:%7B%22key%22%3A%22value%22%7D;'
             'boolean=JSON:true;array=JSON:%5B%22A%22%2C%22B%22%2C%22C%22%5D'
             '");'
@@ -232,14 +232,14 @@ class RavenUrlTestCase(RavenTestCase):
     def test_add_argument_to_url(self):
         """Test the add_argument_to_url function."""
         url = self.eval(
-            'RAVEN.URL.add_argument_to_url("http://localhost/", "A", "one")'
+            'MAG.URL.add_argument_to_url("http://localhost/", "A", "one")'
             )
         self.assertEquals(url, 'http://localhost/?A=one')
 
     def test_add_arg_with_existing_args(self):
         """Test the add_argument_to_url function."""
         url = self.eval(
-            'RAVEN.URL.add_argument_to_url("http://localhost/?A=one",'
+            'MAG.URL.add_argument_to_url("http://localhost/?A=one",'
             ' "B", "two")'
             )
         self.assertEquals(url, 'http://localhost/?A=one;B=two')
@@ -249,7 +249,7 @@ class RavenUrlTestCase(RavenTestCase):
         Gets the current query (as an object) then turns
         it back into a string. Which is empty anyway."""
         query = self.eval(
-            'RAVEN.URL.build_query_string(RAVEN.URL.get_current_query())'
+            'MAG.URL.build_query_string(MAG.URL.get_current_query())'
             )
         self.assertEquals(query, '')
 
@@ -260,29 +260,29 @@ class RavenUrlTestCase(RavenTestCase):
         self.eval('window.location.search="?A=one;B=two;C=three"')
 
         query = self.eval(
-            'RAVEN.URL.build_query_string(RAVEN.URL.get_current_query())'
+            'MAG.URL.build_query_string(MAG.URL.get_current_query())'
             )
         self.assertEquals(query, 'A=one;B=two;C=three')
         self.eval('window.location.search=""')
 
 
-class RavenUnderscoreRestTestCase(RavenTestCase):
+class MagUnderscoreRestTestCase(MagTestCase):
     """Test the REST submodule's implementation functions."""
 
     def test_get_api_url(self):
-        """Test RAVEN._REST.get_api_url()."""
-        self.assertEqual(self.eval('RAVEN._REST.get_api_url();'),
+        """Test MAG._REST.get_api_url()."""
+        self.assertEqual(self.eval('MAG._REST.get_api_url();'),
                          'http://localhost/api/')
 
     def test_get_api_query_url(self):
-        """Test RAVEN._REST.get_api_query_url()."""
-        self.assertEqual(self.eval('RAVEN._REST.get_api_query_url();'),
+        """Test MAG._REST.get_api_query_url()."""
+        self.assertEqual(self.eval('MAG._REST.get_api_query_url();'),
                          'http://localhost/api/query/?')
 
     def test_get_api_resource_url(self):
-        """Test RAVEN._REST.get_api_simple_resource_instance_url."""
+        """Test MAG._REST.get_api_simple_resource_instance_url."""
         self.assertEqual(self.eval(
-                'RAVEN._REST.get_api_simple_resource_instance_url('
+                'MAG._REST.get_api_simple_resource_instance_url('
                 '"author", "Suess");'),
                          'http://localhost/api/author/Suess/')
 
@@ -290,7 +290,7 @@ class RavenUnderscoreRestTestCase(RavenTestCase):
         """Test the caching of API data."""
         # put the data in
         self.eval(
-            'RAVEN._REST.cache_api_data({_model: "author", "_id": "Suess", '
+            'MAG._REST.cache_api_data({_model: "author", "_id": "Suess", '
             'title: "Dr"});')
         # get the data out again
         data_string = self.eval(
@@ -314,7 +314,7 @@ class RavenUnderscoreRestTestCase(RavenTestCase):
         """Test cache_api_list."""
         # put the data in
         self.eval(
-            'RAVEN._REST.cache_api_list({results:['
+            'MAG._REST.cache_api_list({results:['
             '{_model:"author", name: "Douglas Adams", "_id": "AdamsD"}, '
             '{_model:"author", name: "William Gibson", "_id": "GibsonW"}, '
             '{_model:"author", name: "Ray Bradbury", "_id": "BradburyR"}, '
@@ -358,7 +358,7 @@ class RavenUnderscoreRestTestCase(RavenTestCase):
         """Test delete_api_data."""
         # put the data in
         self.eval(
-            'RAVEN._REST.cache_api_data({_model: "author", "_id": "Suess", '
+            'MAG._REST.cache_api_data({_model: "author", "_id": "Suess", '
             'title: "Dr"});')
         # check the data is in
         data_string = self.eval(
@@ -366,7 +366,7 @@ class RavenUnderscoreRestTestCase(RavenTestCase):
         self.assertIs(data_string.startswith('{"type":"json"'), True)
         # delete the data
         self.eval(
-            'RAVEN._REST.delete_api_data({_model: "author", "_id": "Suess", '
+            'MAG._REST.delete_api_data({_model: "author", "_id": "Suess", '
             'title: "Dr"});')
         #delete_api_data
         data_string = self.eval(
@@ -407,17 +407,17 @@ MOCK_MODELS = (
 )
 
 
-class RavenRequestTestCase(RavenTestCase):
+class MagRequestTestCase(MagTestCase):
     """Test the REQUEST module functions."""
     pass
 
 
-class RavenRestTestCase(RavenTestCase):
+class MagRestTestCase(MagTestCase):
     """Test the REST module functions."""
 
     def setUp(self):  # pylint: disable=C0103
         """Open a database connection."""
-        super(RavenRestTestCase, self).setUp()
+        super(MagRestTestCase, self).setUp()
 
         # Create a new test model
         instance_loader = InstanceLoader(
@@ -437,7 +437,7 @@ class RavenRestTestCase(RavenTestCase):
         """Test create_resource."""
         self.eval('new_data = {"_model": "test", "name": "create_test" }')
         self.assertIs(self.eval(
-                'RAVEN.REST.create_resource("test", new_data)'), None)
+                'MAG.REST.create_resource("test", new_data)'), None)
         resource = self.collection.find_one()
         self.assertEquals(resource['_model'], u'test')
         self.assertEquals(resource['name'], u'create_test')
@@ -449,16 +449,16 @@ class RavenRestTestCase(RavenTestCase):
             'new_data_1 = {"_model": "test", "name": "delete_test_1", '
             '"_id": "delete_test_1" }')
         self.assertIs(self.eval(
-                'RAVEN.REST.create_resource("test", new_data_1)'), None)
+                'MAG.REST.create_resource("test", new_data_1)'), None)
         self.eval(
             'new_data_2 = {"_model": "test", "name": "delete_test_2", '
             '"_id": "delete_test_2" }')
         self.assertIs(self.eval(
-                'RAVEN.REST.create_resource("test", new_data_2)'), None)
+                'MAG.REST.create_resource("test", new_data_2)'), None)
         # now delete them
         # Now we delete it
         self.assertIs(self.eval(
-                'RAVEN.REST.delete_resources("test", '
+                'MAG.REST.delete_resources("test", '
                 '["delete_test_1", "delete_test_2"]'
                 ', {comment: "super delete test"}'
                 ')'
@@ -473,13 +473,13 @@ class RavenRestTestCase(RavenTestCase):
             'new_data = {"_model": "test", "name": "delete_test", '
             '"_id": "delete_test" }')
         self.assertIs(self.eval(
-                'RAVEN.REST.create_resource("test", new_data)'), None)
+                'MAG.REST.create_resource("test", new_data)'), None)
         resource = self.collection.find_one()
         self.assertEquals(resource['_model'], u'test')
         self.assertEquals(resource['name'], u'delete_test')
         # Now we delete it
         self.assertIs(self.eval(
-                'RAVEN.REST.delete_resource("test", "delete_test")'), None)
+                'MAG.REST.delete_resource("test", "delete_test")'), None)
         self.sleep()
         # Now we see if it has been deleted
         self.assertEquals(self.collection.find_one(), None)
@@ -491,9 +491,9 @@ class RavenRestTestCase(RavenTestCase):
             '"name": "check_resource_existence_test", '
             '"_id": "existence_test" }')
         self.assertIs(self.eval(
-                'RAVEN.REST.create_resource("test", new_data)'), None)
+                'MAG.REST.create_resource("test", new_data)'), None)
         self.assertIs(self.eval(
-                'RAVEN.REST.check_resource_existence("test", '
+                'MAG.REST.check_resource_existence("test", '
                 '"existence_test", {success: function (item) {'
                 'window.test_answer = item;}})'), None)
         self.assertIs(self.eval('window.test_answer;'), True)
@@ -502,7 +502,7 @@ class RavenRestTestCase(RavenTestCase):
         """Test update_resource."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "update_test",'
@@ -519,7 +519,7 @@ class RavenRestTestCase(RavenTestCase):
         # Now lets update the instance
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_resource('
+                'MAG.REST.update_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "update_test",'
@@ -536,7 +536,7 @@ class RavenRestTestCase(RavenTestCase):
         """Test update_resources."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "name",'
@@ -545,7 +545,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "house",'
@@ -554,7 +554,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "companion",'
@@ -564,7 +564,7 @@ class RavenRestTestCase(RavenTestCase):
 
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_resources("test",'
+                'MAG.REST.update_resources("test",'
                 '['
                 '{_model: "test",'
                 '_id: "name",'
@@ -582,7 +582,7 @@ class RavenRestTestCase(RavenTestCase):
         """Test update_fields."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "france",'
@@ -592,7 +592,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "germany",'
@@ -602,7 +602,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "italy",'
@@ -613,7 +613,7 @@ class RavenRestTestCase(RavenTestCase):
 
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_fields('
+                'MAG.REST.update_fields('
                 '"test",'
                 '["france", "germany"],'
                 '{optional_field: "black"})'
@@ -625,7 +625,7 @@ class RavenRestTestCase(RavenTestCase):
         """Test update_fields."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "france",'
@@ -635,7 +635,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_field_selection('
+                'MAG.REST.update_field_selection('
                 '"test",'
                 '{name: "primary account"},'
                 '{optional_field: "black"})'
@@ -647,7 +647,7 @@ class RavenRestTestCase(RavenTestCase):
         """Test update_fields."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "france",'
@@ -657,7 +657,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "germany",'
@@ -667,7 +667,7 @@ class RavenRestTestCase(RavenTestCase):
                 ), None)
         self.assertIs(
             self.eval(
-                'RAVEN.REST.create_resource('
+                'MAG.REST.create_resource('
                 '"test",'
                 '{_model: "test",'
                 '_id: "italy",'
@@ -678,7 +678,7 @@ class RavenRestTestCase(RavenTestCase):
 
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_fields('
+                'MAG.REST.update_fields('
                 '"test",'
                 '["france", "germany"],'
                 '{"$unset": {"optional_field": 1}}'
@@ -754,7 +754,7 @@ TEST_ARTICLE = {
         ]
     }
 
-class TestEmbedModificationValidation(RavenTestCase):
+class TestEmbedModificationValidation(MagTestCase):
     """Test validate_modification on a complex example with
     embedded resources."""
     def setUp(self):  # pylint: disable=C0103
@@ -779,7 +779,7 @@ class TestEmbedModificationValidation(RavenTestCase):
         """Test the embedded modification."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_fields('
+                'MAG.REST.update_fields('
                 '"article",'
                 '["testarticle",],'
                 '{"$set": {"author.name": "Mr Man"}}'
@@ -799,7 +799,7 @@ class TestEmbedModificationValidation(RavenTestCase):
         """Test the embedded modification."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_fields('
+                'MAG.REST.update_fields('
                 '"article",'
                 '["testarticle",],'
                 '{"$set": {"comment.0.author.name": "Mr Happy"}}'
@@ -878,7 +878,7 @@ TEST_ARTICLE_B = {
         ]
     }
 
-class TestEmbedModificationValidationB(RavenTestCase):
+class TestEmbedModificationValidationB(MagTestCase):
     """Test validate_modification on a complex example with
     embedded resources."""
     def setUp(self):  # pylint: disable=C0103
@@ -902,7 +902,7 @@ class TestEmbedModificationValidationB(RavenTestCase):
         """Test the embedded modification."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_fields('
+                'MAG.REST.update_fields('
                 '"article",'
                 '["testarticle",],'
                 '{"$set": {"writer.name": "Mr Man"}}'
@@ -922,7 +922,7 @@ class TestEmbedModificationValidationB(RavenTestCase):
         """Test the embedded modification."""
         self.assertIs(
             self.eval(
-                'RAVEN.REST.update_fields('
+                'MAG.REST.update_fields('
                 '"article",'
                 '["testarticle",],'
                 '{"$set": {"comments.0.author.name": "Mr Happy"}}'

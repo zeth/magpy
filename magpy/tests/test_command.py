@@ -3,7 +3,7 @@
 import unittest
 from magpy.tests.javascript import JavaScriptTestCase
 from magpy.server.instances import InstanceLoader
-from magpy.tests.test_ravenjs import MOCK_MODELS, RavenTestCase, \
+from magpy.tests.test_magjs import MOCK_MODELS, MagTestCase, \
     open_test_collection
 
 # pylint: disable=R0904
@@ -11,12 +11,12 @@ from magpy.tests.test_ravenjs import MOCK_MODELS, RavenTestCase, \
 from magpy.server.database import Database
 
 
-class RavenCommandTestCase(RavenTestCase):
+class MagCommandTestCase(MagTestCase):
     """Test advanced commands."""
 
     def setUp(self):  # pylint: disable=C0103
         """Open a database connection."""
-        super(RavenCommandTestCase, self).setUp()
+        super(MagCommandTestCase, self).setUp()
 
         # Create a new test model
         instance_loader = InstanceLoader(
@@ -33,12 +33,12 @@ class RavenCommandTestCase(RavenTestCase):
         self.collection.remove()
 
     def test_get_unique_id(self):
-        """Test RAVEN.COMMAND.get_unique_id"""
+        """Test MAG.COMMAND.get_unique_id"""
         self.eval(
             'new_data = {"_model": "test", "name": "unique_id_test", '
             '"_id": "unique_id_test_1" }')
         self.assertIs(self.eval(
-                'RAVEN.REST.create_resource("test", new_data)'), None)
+                'MAG.REST.create_resource("test", new_data)'), None)
 
 
 if __name__ == '__main__':

@@ -123,7 +123,7 @@ class JavascriptShell(cmd.Cmd):  # pylint: disable=R0904
         else:
             magpy_path = get_mag_path()
             self.specials = {
-                "raven": os.path.join(magpy_path, 'static/js/mag.js'),
+                "mag": os.path.join(magpy_path, 'static/js/mag.js'),
                 "domcore": os.path.join(magpy_path, 'tests/js/domcore.js')}
 
         cmd.Cmd.__init__(self, *args, **kwargs)
