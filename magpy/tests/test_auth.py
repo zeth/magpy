@@ -66,7 +66,7 @@ class MagUnauthorisedAuthTestCase(MagTestCase):
         self.eval('new_data = {"_model": "auth_test", "name": "create_test" }')
         response = self.eval(
                 'MAG.REST.create_resource("auth_test", new_data)')
-        self.assertEquals(response.splitlines()[-1],
+        self.assertEqual(response.splitlines()[-1],
                           UNAUTHORISED)
 
     def test_unauthorised_update(self):
@@ -79,7 +79,7 @@ class MagUnauthorisedAuthTestCase(MagTestCase):
             '_id: "update_test",'
             'name: "second_version"}'
             ')')
-        self.assertEquals(response.splitlines()[-1],
+        self.assertEqual(response.splitlines()[-1],
                           UNAUTHORISED)
 
     def test_unauthorised_delete(self):
@@ -90,9 +90,9 @@ class MagUnauthorisedAuthTestCase(MagTestCase):
             'name': 'first_version'})
         response = self.eval(
                 'MAG.REST.delete_resource("test", "delete_test")')
-        self.assertEquals(response,
+        self.assertEqual(response,
                           None)
-        self.assertEquals(
+        self.assertEqual(
             self.collection.find_one(),
             {u'_model': u'auth_test',
              u'_id': u'delete_test',
@@ -104,7 +104,7 @@ class MagUnauthorisedAuthTestCase(MagTestCase):
             {'_model': 'auth_test',
             '_id': 'read_test',
             'name': 'first_version'})
-        self.assertEquals(
+        self.assertEqual(
             self.collection.find_one(),
             {u'_model': u'auth_test',
              u'_id': u'read_test',
@@ -112,7 +112,7 @@ class MagUnauthorisedAuthTestCase(MagTestCase):
 
         response = self.eval(
                 'MAG.REST.apply_to_resource("test", "read_test")')
-        self.assertEquals(response.splitlines()[-1],
+        self.assertEqual(response.splitlines()[-1],
                           NOTFOUND)
 
 

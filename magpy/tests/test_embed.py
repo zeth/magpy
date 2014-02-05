@@ -55,8 +55,8 @@ class MagEmbedTestCase(MagTestCase):
         self.assertIs(self.eval(
                'MAG.REST.create_resource("article", new_data)'), None)
         #resource = self.collection.find_one()
-        #self.assertEquals(resource['_model'], u'_test')
-        #self.assertEquals(resource['name'], u'create_test')
+        #self.assertEqual(resource['_model'], u'_test')
+        #self.assertEqual(resource['name'], u'create_test')
 
 
 if __name__ == '__main__':

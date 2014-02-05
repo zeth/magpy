@@ -193,15 +193,15 @@ class MagUrlTestCase(MagTestCase):
         """Test the parse_query_string function."""
         arguments = self.eval(
             'MAG.URL.parse_query_string("?man=Adam;woman=Eve;");')
-        self.assertEquals(arguments['man'], "Adam")
-        self.assertEquals(arguments['woman'], "Eve")
+        self.assertEqual(arguments['man'], "Adam")
+        self.assertEqual(arguments['woman'], "Eve")
 
     def test_build_query_string(self):
         """Test the build_query_string function."""
         query_string = self.eval(
             'MAG.URL.build_query_string({A: "one", B: "two", C: "three"})'
             )
-        self.assertEquals(query_string, 'A=one;B=two;C=three')
+        self.assertEqual(query_string, 'A=one;B=two;C=three')
 
     def test_build_complex_query_string(self):
         """Test the build_query_string function."""
@@ -210,7 +210,7 @@ class MagUrlTestCase(MagTestCase):
             'object: {"key": "value"}, boolean: true, '
             '"array": ["A", "B", "C"]})'
             )
-        self.assertEquals(
+        self.assertEqual(
             query_string,
             'number=JSON:1;object=JSON:%7B%22key%22%3A%22value%22%7D;'
             'boolean=JSON:true;array=JSON:%5B%22A%22%2C%22B%22%2C%22C%22%5D'
@@ -224,17 +224,17 @@ class MagUrlTestCase(MagTestCase):
             'boolean=JSON:true;array=JSON:%5B%22A%22%2C%22B%22%2C%22C%22%5D'
             '");'
             )
-        self.assertEquals(arguments["number"], 1)
-        self.assertEquals(arguments['boolean'], True)
-        self.assertEquals(dict(arguments['object']), {'key': 'value'})
-        self.assertEquals(list(arguments['array']), ['A', 'B', 'C'])
+        self.assertEqual(arguments["number"], 1)
+        self.assertEqual(arguments['boolean'], True)
+        self.assertEqual(dict(arguments['object']), {'key': 'value'})
+        self.assertEqual(list(arguments['array']), ['A', 'B', 'C'])
 
     def test_add_argument_to_url(self):
         """Test the add_argument_to_url function."""
         url = self.eval(
             'MAG.URL.add_argument_to_url("http://localhost/", "A", "one")'
             )
-        self.assertEquals(url, 'http://localhost/?A=one')
+        self.assertEqual(url, 'http://localhost/?A=one')
 
     def test_add_arg_with_existing_args(self):
         """Test the add_argument_to_url function."""
@@ -242,7 +242,7 @@ class MagUrlTestCase(MagTestCase):
             'MAG.URL.add_argument_to_url("http://localhost/?A=one",'
             ' "B", "two")'
             )
-        self.assertEquals(url, 'http://localhost/?A=one;B=two')
+        self.assertEqual(url, 'http://localhost/?A=one;B=two')
 
     def test_get_current_query(self):
         """Test get_current_query, which is empty.
@@ -251,7 +251,7 @@ class MagUrlTestCase(MagTestCase):
         query = self.eval(
             'MAG.URL.build_query_string(MAG.URL.get_current_query())'
             )
-        self.assertEquals(query, '')
+        self.assertEqual(query, '')
 
     def test_get_non_empty_query(self):
         """Test get_current_query, which we will set to non empty.
@@ -262,7 +262,7 @@ class MagUrlTestCase(MagTestCase):
         query = self.eval(
             'MAG.URL.build_query_string(MAG.URL.get_current_query())'
             )
-        self.assertEquals(query, 'A=one;B=two;C=three')
+        self.assertEqual(query, 'A=one;B=two;C=three')
         self.eval('window.location.search=""')
 
 
@@ -439,8 +439,8 @@ class MagRestTestCase(MagTestCase):
         self.assertIs(self.eval(
                 'MAG.REST.create_resource("test", new_data)'), None)
         resource = self.collection.find_one()
-        self.assertEquals(resource['_model'], u'test')
-        self.assertEquals(resource['name'], u'create_test')
+        self.assertEqual(resource['_model'], u'test')
+        self.assertEqual(resource['name'], u'create_test')
 
     def test_delete_resources(self):
         """Test delete resources."""
@@ -465,7 +465,7 @@ class MagRestTestCase(MagTestCase):
                 ), None)
         self.sleep()
         # Now we see if it has been deleted
-        self.assertEquals(self.collection.find_one(), None)
+        self.assertEqual(self.collection.find_one(), None)
 
     def test_delete_resource(self):
         """Test delete_resource"""
@@ -475,14 +475,14 @@ class MagRestTestCase(MagTestCase):
         self.assertIs(self.eval(
                 'MAG.REST.create_resource("test", new_data)'), None)
         resource = self.collection.find_one()
-        self.assertEquals(resource['_model'], u'test')
-        self.assertEquals(resource['name'], u'delete_test')
+        self.assertEqual(resource['_model'], u'test')
+        self.assertEqual(resource['name'], u'delete_test')
         # Now we delete it
         self.assertIs(self.eval(
                 'MAG.REST.delete_resource("test", "delete_test")'), None)
         self.sleep()
         # Now we see if it has been deleted
-        self.assertEquals(self.collection.find_one(), None)
+        self.assertEqual(self.collection.find_one(), None)
 
     def test_check_resource_existence(self):
         """Test check_resource_existence."""
@@ -512,8 +512,8 @@ class MagRestTestCase(MagTestCase):
 
         # Lets prove the first version went in.
         resource = self.collection.find_one()
-        self.assertEquals(resource['_model'], u'test')
-        self.assertEquals(resource['name'], u'original_version')
+        self.assertEqual(resource['_model'], u'test')
+        self.assertEqual(resource['name'], u'original_version')
         self.sleep(1)
 
         # Now lets update the instance
@@ -530,7 +530,7 @@ class MagRestTestCase(MagTestCase):
         self.sleep(1)
         # Lets prove the second version went in.
         resource = self.collection.find_one()
-        self.assertEquals(resource['name'], u'second_version')
+        self.assertEqual(resource['name'], u'second_version')
 
     def test_update_resources(self):
         """Test update_resources."""

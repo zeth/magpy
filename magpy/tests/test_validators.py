@@ -402,7 +402,7 @@ class TestURLValidatorExists(TestCase):
     def test_site_exists(self):
         """Test that the site w3.org exists."""
         validator = URLValidator(verify_exists=True)
-        self.assertEquals(validator('http://w3.org'), None)
+        self.assertEqual(validator('http://w3.org'), None)
 
     def test_broken_link(self):
         """Test that a URL does not exist."""
@@ -686,7 +686,7 @@ class ParseInstanceTestCase(TestCase):
         parse_instance(instance, results)
 
         # Test Result
-        self.assertEquals(results, set(['comment', 'author']))
+        self.assertEqual(results, set(['comment', 'author']))
 
 
 class EmbedTestCase(TestCase):
