@@ -16,7 +16,7 @@ from magpy.server.validators import validate_integer, ValidationError, \
     BaseValidator, RegexValidator, MissingFields, InvalidFields, \
     OrphanedInstance, ModelValidator, validate_dict, \
     validate_model_instance, parse_instance, validate_list, \
-    validate_embedded_list, validate_xml, smart_unicode, smart_str, \
+    validate_embedded_list, validate_xml, smart_text, smart_str, \
     WrappedUnicodeDecodeError, is_valid_ipv6_address, clean_ipv6_address, \
     validate_char, validate_date, validate_datetime, \
     validate_float, validate_nullboolean, validate_postiveinteger, \
@@ -69,7 +69,7 @@ class TestSimpleValidators(TestCase):
         self.assertEqual(repr(validity), \
                              "ValidationError({'first': 'First Problem'})")
 
-    def test_smart_unicode(self):
+    def test_smart_text(self):
         """Test the smart unicode function (originally from Django."""
         class Test:
             """Test Unicode string."""
@@ -79,36 +79,41 @@ class TestSimpleValidators(TestCase):
         class TestU:
             """Another test string."""
             def __str__(self):
-                return 'Foo'
+                return b'Foo'
 
             # pylint: disable=R0201
             def __unicode__(self):
                 return u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111'
 
         self.assertEqual(
-            smart_unicode(Test()),
+            smart_text(Test()),
+            u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111')
+
+        self.assertEqual(
+            smart_text(TestU()),
             u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111')
         self.assertEqual(
-            smart_unicode(TestU()),
-            u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111')
+            smart_text(1), u'1')
         self.assertEqual(
-            smart_unicode(1), u'1')
-        self.assertEqual(
-            smart_unicode('foo'), u'foo')
+            smart_text('foo'), u'foo')
 
         self.assertRaises(
             WrappedUnicodeDecodeError,
-            smart_unicode,
+            smart_text,
             b'\xff\xfeS0\n\x00'
             )
-        self.assertEqual(
-            smart_unicode(Exception('Ryökäle')), u'Ry\xf6k\xe4le')
+
+        # Test does not make sense in Python3
+        #self.assertEqual(
+        #    smart_text(Exception('Ryökäle')), u'Ry\xf6k\xe4le')
+
 
         # Do I need this test?
-        self.assertRaises(
-            WrappedUnicodeDecodeError,
-            smart_unicode,
-            Exception('\xff\xfeS0\n\x00'))
+        # Test does not make sense in Python3
+#        self.assertRaises(
+#            WrappedUnicodeDecodeError,
+#            smart_text,
+#            Exception('\xff\xfeS0\n\x00'))
 
     def test_smart_str(self):
         """Test the smart_str function."""
@@ -128,8 +133,9 @@ class TestSimpleValidators(TestCase):
             smart_str(u'\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111'),
             first_result)
 
-        self.assertEqual(
-            smart_str(Exception(u'Ryökäle')), second_result)
+        # Test does not make sense in Python3
+        #self.assertEqual(
+        #    smart_str(Exception(u'Ryökäle')), second_result)
 
         self.assertEqual(smart_str(u"\u0411"), third_result)
         self.assertEqual(smart_str(1), '1')

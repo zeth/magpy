@@ -799,10 +799,10 @@ class MaxLengthValidator(BaseValidator):
     code = 'max_length'
 
 
-def smart_unicode(stringy_thingy,
-                  encoding='utf-8',
-                  strings_only=False,
-                  errors='strict'):
+def smart_text(stringy_thingy,
+               encoding='utf-8',
+               strings_only=False,
+               errors='strict'):
     """
     Returns a unicode object representing 'stringy_thingy'.
     Treats bytestrings using the 'encoding' codec.
@@ -810,6 +810,8 @@ def smart_unicode(stringy_thingy,
     If strings_only is True, don't convert (some) non-string-like objects.
     """
     return force_unicode(stringy_thingy, encoding, strings_only, errors)
+
+smart_unicode = smart_text 
 
 
 def smart_str(stringy_thingy,
@@ -895,17 +897,18 @@ def force_unicode(stringy_thingy,
         return stringy_thingy
     try:
         if not isinstance(stringy_thingy, six.string_types):
-            if hasattr(stringy_thingy, '__unicode__'):
+            if six.PY3 and isinstance(stringy_thingy, bytes):
+                stringy_thingy = six.text_type(stringy_thingy, encoding, errors)
+            elif hasattr(stringy_thingy, '__unicode__'):
                 # If we have a convert to unicode method then use it.
-                stringy_thingy = stringy_thingy.__unicode__()
+                try:
+                    stringy_thingy = six.text_type(stringy_thingy)
+                except TypeError:
+                    stringy_thingy = stringy_thingy.__unicode__()
+            elif six.PY3:
+                stringy_thingy = six.text_type(stringy_thingy) 
             else:
-                if six.PY3:
-                    if isinstance(stringy_thingy, bytes):
-                        stringy_thingy = six.text_type(stringy_thingy, encoding, errors)
-                    else:
-                        stringy_thingy = six.text_type(stringy_thingy)
-                else:
-                    stringy_thingy = six.text_type(bytes(stringy_thingy), encoding, errors)
+                stringy_thingy = six.text_type(bytes(stringy_thingy), encoding, errors)
 
         else:
             # Note: We use .decode() here, instead of six.text_type(s, encoding,
