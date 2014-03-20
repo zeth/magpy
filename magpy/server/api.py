@@ -41,7 +41,10 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
     @permission_required('delete')
     def delete(self, resource):
         """Delete multiple instances."""
-        data = json.loads(self.request.body,
+        body = self.request.body
+        if six.PY3 and isinstance(body, six.binary_type):
+            body = body.decode('utf8')
+        data = json.loads(body,
                           object_hook=json_util.object_hook)
         if not 'ids' in data:
             raise tornado.web.HTTPError(400, "No ids to delete")
@@ -278,8 +281,13 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         if not user:
             user = {"_id": "unknown",
                     "name": "unknown"}
+
         # 2. Now we get the data from the request.
-        data = json.loads(self.request.body,
+        body = self.request.body
+        if six.PY3 and isinstance(body, six.binary_type):
+            body = body.decode('utf8')
+
+        data = json.loads(body,
                           object_hook=json_util.object_hook)
         # 3. Now we get all the ids of the previous instances.
         if 'ids' in data:
@@ -949,7 +957,11 @@ class ResourceHandler(tornado.web.RequestHandler,
     @permission_required('update')
     def put(self, resource, objectid):
         """Update a single instance."""
-        new_instance = json.loads(self.request.body,
+        body = self.request.body
+        if six.PY3 and isinstance(body, six.binary_type):
+            body = body.decode('utf8')
+
+        new_instance = json.loads(body,
                                   object_hook=json_util.object_hook)
         if '_id' not in new_instance:
             raise tornado.web.HTTPError(400, "Missing _id key")
