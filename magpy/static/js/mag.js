@@ -2750,9 +2750,6 @@ var MAG = (function () {
                         if (auto_sort === true) {
                             MAG.DISPLAY.add_sort_handlers(key_list);
                         }
-                        if (document.getElementById('page_title') !== null) {
-                            document.getElementById('page_title').innerHTML = MAG.DISPLAY.capitalise_titles(model) + ' List';
-                        }
                         if (document.getElementById('page_nav') !== null) {
                             if (document.getElementById('page_size') !== null) {
                                 document.getElementById('page_size').innerHTML = '<select id="page_size_select"></select> per page';
