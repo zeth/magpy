@@ -51,7 +51,10 @@ class MagEmbedTestCase(MagTestCase):
 
     def test_create_resource(self):
         """Test MAG._REST.get_api_url()."""
-        self.eval('new_data = %s;' % TEST_ARTICLE)
+        data = 'new_data = %s;' % TEST_ARTICLE
+        if six.PY3:
+            data = bytes(data, 'utf8')
+        self.eval(data)
         self.assertIs(self.eval(
                'MAG.REST.create_resource("article", new_data)'), None)
         #resource = self.collection.find_one()

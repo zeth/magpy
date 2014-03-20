@@ -244,7 +244,12 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
         """Update multiple instances
         Starting by getting the relevant model."""
         # Send fields a different way altogether
-        data = json.loads(self.request.body,
+
+        body = self.request.body
+        if six.PY3 and isinstance(body, six.binary_type):
+            body = body.decode('utf8')
+
+        data = json.loads(body,
                           object_hook=json_util.object_hook)
 
         if 'fields' in data:
@@ -478,8 +483,14 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
     def post(self, resource):
         """Create a new instance.
         Start by looking if it already exists!"""
-        data = json.loads(self.request.body,
+        body = self.request.body
+        if six.PY3 and isinstance(body, six.binary_type):
+            body = body.decode('utf8')
+        
+        data = json.loads(body,
                           object_hook=json_util.object_hook)
+
+
         if isinstance(data, dict):
             
             if not '_id' in data:

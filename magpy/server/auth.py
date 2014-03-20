@@ -322,7 +322,11 @@ class AuthPermissionsHandler(tornado.web.RequestHandler,
     def _return_instance(self, instance, error=None):
         """Return a single instance or anything else that can become JSON."""
         self.set_header("Content-Type", "application/json; charset=UTF-8")
-        self.write(json.dumps(instance, default=json_util.default))
+        json_response = json.dumps(instance, default=json_util.default)
+        if six.PY3:
+            json_response = bytes(json_response, 'utf8')
+        
+        self.write(json_response)
         self.finish()
 
 
@@ -393,7 +397,10 @@ class AuthWhoAreTheyHandler(tornado.web.RequestHandler,
             coll.find(spec={'_id': {'$in': ids}}).to_list(callback=callback)
         else:
             self.set_header("Content-Type", "application/json; charset=UTF-8")
-            self.write(json.dumps({}, default=json_util.default))
+            empty_response = json.dumps({}, default=json_util.default)
+            if six.PY3:
+                empty_response = bytes(json_response, 'utf8')
+            self.write(empty_response)
             self.finish()
             return
         

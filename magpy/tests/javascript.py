@@ -29,7 +29,7 @@ import sys
 import traceback
 import cmd
 import unittest
-
+import six
 import PyV8
 
 from magpy.server.utils import get_mag_path
@@ -270,6 +270,9 @@ class XMLHttpRequest(object):
         Note: Any event listeners you wish to set must be set before
         calling send().
         """
+        if data and six.PY3:
+            print ("here", type(data))
+            data = bytes(data, 'utf8')    
         request = RequestWithMethod(self._url, data,
                                     headers=self._request_headers,
                                     method=self._method)
@@ -278,7 +281,11 @@ class XMLHttpRequest(object):
         self.statusText = response.msg
         self.responseText = response.read()
         self.response = response.read()
-        self._response_headers = response.headers.dict
+
+        if six.PY2:
+            self._response_headers = response.headers.dict
+        else:
+            self._response_headers = response.headers.__dict__
         self.responseXML = None
         self.readyState = 4
         if self.onreadystatechange:

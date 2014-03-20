@@ -556,7 +556,7 @@ var MAG = (function () {
                     options.method = "POST";
                     options.data = JSON.stringify(instance);
                     MAG._REQUEST.request(url,
-                                           options);
+                                         options);
                 },
 
                 /** Update resource and cache the local copy
