@@ -271,7 +271,6 @@ class XMLHttpRequest(object):
         calling send().
         """
         if data and six.PY3:
-            print ("here", type(data))
             data = bytes(data, 'utf8')    
         request = RequestWithMethod(self._url, data,
                                     headers=self._request_headers,
