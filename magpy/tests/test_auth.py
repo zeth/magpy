@@ -7,8 +7,17 @@ import time
 from magpy.server.instances import InstanceLoader
 from magpy.tests.test_magjs import open_test_collection, MagTestCase
 
-UNAUTHORISED = 'HTTPError: HTTP Error 401: Unauthorized'
-NOTFOUND = 'HTTPError: HTTP Error 404: Not Found'
+import six
+
+if six.PY3:
+    NOTFOUND = 'urllib.error.HTTPError: HTTP Error 404: Not Found'
+else:
+    NOTFOUND = 'HTTPError: HTTP Error 404: Not Found'
+
+if six.PY3:
+    UNAUTHORISED = 'urllib.error.HTTPError: HTTP Error 401: Unauthorized'
+else:
+    UNAUTHORISED = 'HTTPError: HTTP Error 401: Unauthorized'
 
 MOCK_AUTH_MODELS = (
     {
@@ -67,7 +76,7 @@ class MagUnauthorisedAuthTestCase(MagTestCase):
         response = self.eval(
                 'MAG.REST.create_resource("auth_test", new_data)')
         self.assertEqual(response.splitlines()[-1],
-                          UNAUTHORISED)
+                         UNAUTHORISED)
 
     def test_unauthorised_update(self):
         """Test update_resource."""
