@@ -1406,7 +1406,7 @@ var MAG = (function () {
                             [data._model, data._id]
                         );
                     if (localStorage[storagekey] !== 'undefined') {
-                    	return localStorage.removeItem(storagekey);
+                    	localStorage.removeItem(storagekey);
                     	//this is no longer supported in FF. Replaced by line above
                         //delete localStorage[storagekey];
                     }
@@ -1422,7 +1422,7 @@ var MAG = (function () {
                     for (i = 0; i < length; i += 1) {
                         instance_key = storagekey + ids[i] + '/';
                         if (localStorage[instance_key] !== 'undefined') {
-                        	return localStorage.removeItem(instance_key);
+                        	localStorage.removeItem(instance_key);
                         	//this is no longer supported in FF. Replaced by line above
                             //delete localStorage[instance_key];
                         }
@@ -2447,7 +2447,7 @@ var MAG = (function () {
                     newoptions = {'success': function(response) {
                         for (item in localStorage) {
                             if (item.indexOf('/api/' + form_id.replace('_form', '')) !== -1) {
-                            	return localStorage.removeItem(item);
+                            	localStorage.removeItem(item);
                             	//this is no longer supported in FF. Replaced by line above
                             	//delete localStorage[item];
                             }
