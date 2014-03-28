@@ -898,12 +898,11 @@ var MAG = (function () {
                     for (item in localStorage) {
                         if (localStorage.hasOwnProperty(item)) {
                             if (item.indexOf('/auth/') !== -1) {
-                            	return localStorage.removeItem(item);
-                            	//this is no longer supported in FF. Replaced by line above
-                                //delete localStorage[item];
+                            	localStorage.removeItem(item);
                             }
                         }
                     }
+                    
                 },
                 
                 /** Resolve a list of user ids to real names
@@ -2677,7 +2676,7 @@ var MAG = (function () {
                         page_size = param_dict.size;
                     } //already set to null above (or to supplied value)
                     delete param_dict['size'];
-                    MAG.REST.apply_to_resource('_model', model, {'success' : function (model_json) {
+                    MAG.REST.apply_to_resource('_model', model, {'force_reload': true, 'success' : function (model_json) {
                         if (model_json.hasOwnProperty('_view')
                             && model_json._view.hasOwnProperty('list')
                             && model_json._view.list.hasOwnProperty('read')) {
@@ -2692,53 +2691,49 @@ var MAG = (function () {
                                 }
                                 //TODO:need to sort this out with getting other info required from model once the rest works!!!
                                 if (options.hasOwnProperty('key_order')) {
-                                    console.log('key order supplied - needs fixing')
-                                    html = MAG.DISPLAY.create_instance_list_table(json, options.key_order);
-                                    container.innerHTML = '<table class="data_list">' + html.join('') + '</table>';
-                                } else {
-                                	if (options.hasOwnProperty('criteria')) {
-                                		criteria = options.criteria;
-                                	} else {
-                                		criteria = {};
-                                	}
-                                	criteria._count = 'true';
-                                    if (page_size !== null) {
-                                        criteria['_limit'] = 'JSON:' + page_size;
-                                        criteria['_skip'] = 'JSON:' + (page_num-1)*page_size;
-                                    }
-                                    for (key in param_dict) {
-                                        if (param_dict.hasOwnProperty(key)) {
-                                            criteria[key] = param_dict[key];
-                                        }
-                                    }
-                                    if (sort !== null) {
-                                        criteria['_sort'] = [[sort.split('|')[0], parseInt(sort.split('|')[1])]];
-                                    } else {
-                                        if (typeof model_json._view.sort !== 'undefined'){
-                                            criteria['_sort'] = [[model_json._view.sort, 1]];
-                                        } else {
-                                            criteria['_sort'] = [['_id', 1]];
-                                        }
-                                    }
-                                    MAG.REST.apply_to_list_of_resources(model, {'criteria' : criteria, 'force_reload': true, 'success' : function (json) {
-                                        callback = function(data) {
-                                            MAG.DISPLAY.populate_show_instance_list_table(
-                                                data, key_list, auto_sort, criteria,
-                                                html, container, model, page_num,
-                                                param_dict, model_json, page_size,
-                                                filter_key);
-                                        }
-
-                                        if (typeof options.preprocess != "undefined") {
-                                            options.preprocess(json, callback);
-                                        } else {
-                                            callback(json);
-                                        }
-
-                                    }});
+                                	key_list = options.key_order;
                                 }
+                            	if (options.hasOwnProperty('criteria')) {
+                            		criteria = options.criteria;
+                            	} else {
+                            		criteria = {};
+                            	}
+                            	criteria._count = 'true';
+                                if (page_size !== null) {
+                                    criteria['_limit'] = 'JSON:' + page_size;
+                                    criteria['_skip'] = 'JSON:' + (page_num-1)*page_size;
+                                }
+                                for (key in param_dict) {
+                                    if (param_dict.hasOwnProperty(key)) {
+                                        criteria[key] = param_dict[key];
+                                    }
+                                }
+                                if (sort !== null) {
+                                    criteria['_sort'] = [[sort.split('|')[0], parseInt(sort.split('|')[1])]];
+                                } else {
+                                    if (typeof model_json._view.sort !== 'undefined'){
+                                        criteria['_sort'] = [[model_json._view.sort, 1]];
+                                    } else {
+                                        criteria['_sort'] = [['_id', 1]];
+                                    }
+                                }
+                                MAG.REST.apply_to_list_of_resources(model, {'criteria' : criteria, 'force_reload': true, 'success' : function (json) {
+                                    callback = function(data) {
+                                        MAG.DISPLAY.populate_show_instance_list_table(
+                                            data, key_list, auto_sort, criteria,
+                                            html, container, model, page_num,
+                                            param_dict, model_json, page_size,
+                                            filter_key);
+                                    }
+
+                                    if (typeof options.preprocess != "undefined") {
+                                        options.preprocess(json, callback);
+                                    } else {
+                                        callback(json);
+                                    }
+                                }});
                             }});
-                        } else {
+                        } else if (!options.hasOwnProperty('key_order')) {
                             alert('no order list for ' + model);
                         }
                     }});
