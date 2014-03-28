@@ -2528,6 +2528,7 @@ var MAG = (function () {
                  * options are
                  *    key_order (supplied one will overwrite any others)
                  *    show_blanks
+                 *    
                  *    */
                 show_instance_table: function (json, container_id, options) {
                     var container, html, show_blanks;
@@ -2628,6 +2629,7 @@ var MAG = (function () {
                 /* Show a list of instances in a table
                  * options are
                  * key_order: list of keys (supplied one will overwrite the one in the model)
+                 * criteria: the search criteria to use for returning hits to display
                  * auto_filter: boolean to say whether or not to attempt to provide automatic sorting on fields
                  * preprocess: provide a preprocessing callback
                  *
@@ -2694,7 +2696,12 @@ var MAG = (function () {
                                     html = MAG.DISPLAY.create_instance_list_table(json, options.key_order);
                                     container.innerHTML = '<table class="data_list">' + html.join('') + '</table>';
                                 } else {
-                                    criteria = {'_count':'true'};
+                                	if (options.hasOwnProperty('criteria')) {
+                                		criteria = options.criteria;
+                                	} else {
+                                		criteria = {};
+                                	}
+                                	criteria._count = 'true';
                                     if (page_size !== null) {
                                         criteria['_limit'] = 'JSON:' + page_size;
                                         criteria['_skip'] = 'JSON:' + (page_num-1)*page_size;
