@@ -2391,7 +2391,7 @@ var MAG = (function () {
                                     while (field === null && i <= prefix_list.length) {
                                         fnstring = js_name_space + '.add_' + prefix_list.slice(0, i * -1).join('_');
                                         try {
-                                            MAG.FUNCTOOLS.get_function_from_string(fnstring)();
+                                            MAG.FUNCTOOLS.get_function_from_string(fnstring)(data);
                                             field = document.getElementById(prefix_list.join('_') + '_' + key);
                                             MAG.FORMS.populate_field(field,data[key]);
                                         } catch (err) {
