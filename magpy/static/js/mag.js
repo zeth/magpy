@@ -2319,7 +2319,7 @@ var MAG = (function () {
                     form: the form object to populate
                     prefix: used internally for dealing with embedded data*/
                 populate_simple_form: function (data, form, prefix) {
-                    var field, key;
+                    var field, key, i;
                     if (prefix === undefined) {
                         prefix = '';
                     }
@@ -2330,6 +2330,14 @@ var MAG = (function () {
                             } else if (MAG.TYPES.is_array(data[key]) &&
                                        MAG.TYPES.is_object(data[key][0])) {
                                 MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            } else if (MAG.TYPES.is_array(data[key]) && //check if this is a multi field list rather than one that needs to be joined into a single pipe separated value
+                            		document.getElementById(prefix + key + '_0')) {
+                            	for (i = 0; i < data[key].length; i += 1) {
+                            		field = document.getElementById(prefix + key + '_' + i);
+                            		if (field) {
+                                        MAG.FORMS.populate_field(field, data[key][i]);
+                                    }
+                            	}
                             } else {
                                 field = document.getElementById(prefix + key);
                                 if (field) {
