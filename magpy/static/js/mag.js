@@ -2215,6 +2215,7 @@ var MAG = (function () {
                    anyway before this point! */
                 serialize_form: function (form_id, elem_list, prefix) {
                     var i, j, k, elems, json, elem, value, subelems, key, subjson;
+                    console.log(form_id)
                     if (elem_list === undefined) {
                         elems = document.getElementById(form_id).elements;
                     } else {
