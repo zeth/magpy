@@ -293,7 +293,8 @@ var MAG = (function () {
                 is_boolean: function (o) {
                     return Object.prototype.toString.call(o) ===
                         '[object Boolean]';
-                }
+                },
+                
                 // End of submodule TYPES
             };
         }()),
@@ -2984,11 +2985,11 @@ var MAG = (function () {
                 },
 
                 get_list_instance_data: function (json, key_order) {
-                    var i, j, cells, param_string, param_list, entry, key;
+                    var i, j, cells, param_string, param_list, entry, key, date, minutes;
                     param_string = '';
                     cells = [];
                     for (i = 0; i < key_order.length; i += 1) {
-                        if (MAG.TYPES.is_object(key_order[i])
+                        if (MAG.TYPES.is_object(key_order[i]) //deals with special objects that create links
                             && key_order[i].hasOwnProperty('type')
                             && key_order[i].type === 'link') {
                             if (!key_order[i].hasOwnProperty('href')) {
@@ -3041,11 +3042,25 @@ var MAG = (function () {
                                         cells.push('</tr>');
                                         cells.push('</tbody></table></td>');
                                     } else {
-                                        //process as dictionary
-                                        cells.push('<td>');
-                                        cells.push(MAG.DISPLAY.format_dictionary(json[key]));
-                                        cells.push('</td>');
+                                    	date = new Date(json[key].$date);
+                                    	if (!isNaN(date.getTime())) {
+                                        	cells.push('<td>');
+                                        	minutes = date.getMinutes();
+                                        	if (minutes < 10) {
+                                        		minutes = '0' + minutes;
+                                        	}
+                                        	cells.push(date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + minutes);
+                                        	cells.push('</td>');
+                                    	} else {
+                                        	//process as dictionary
+                                            cells.push('<td>');
+                                            cells.push(MAG.DISPLAY.format_dictionary(json[key]));
+                                            cells.push('</td>');
+                                        }
+                                    
                                     }
+
+
                                 } else if (MAG.TYPES.is_array(json[key])) {
                                     cells.push('<td class="container"><table class="inner"><tbody>');
                                     for (j = 0; j < json[key].length; j += 1) {
