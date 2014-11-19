@@ -2098,8 +2098,9 @@ var MAG = (function () {
                  * value_key = a single key as a string to use as value attribute for option
                  * text_keys = a string, list of strings or object with numbered keys, to use as text of option,
                  *              falls through list until it finds one in the data or comma separates numbered fields is object
-                 * selected_option_value = optional argument to say which of the options should be selected */
-                populate_select: function (data, select, value_key, text_keys, selected_option_value, add_select) {
+                 * selected_option_value = optional argument to say which of the options should be selected 
+                 * add_select = a boolean as to wether to add 'select' with value 'none' to the head of the data list*/
+                populate_select: function (data, select, value_key, text_keys, selected_option_value, add_select, reactivate) {
                     var options, i, j, template, mapping, text_key, inner_template, inner_template_list, option_text, inner_mapping;
                     if (typeof add_select === 'undefined' || add_select === true) {
                         options = '<option value="none">select</option>';                        
@@ -2141,6 +2142,9 @@ var MAG = (function () {
                         options += MAG.TEMPLATE.substitute(template, mapping);
                     }
                     select.innerHTML = options;
+                    if (reactivate === true) {
+                    	select.disabled = false;
+                    }
                 },
 
                 get_value: function (elem) {
@@ -2216,7 +2220,6 @@ var MAG = (function () {
                    anyway before this point! */
                 serialize_form: function (form_id, elem_list, prefix) {
                     var i, j, k, elems, json, elem, value, subelems, key, subjson;
-                    console.log(form_id)
                     if (elem_list === undefined) {
                         elems = document.getElementById(form_id).elements;
                     } else {
