@@ -2097,7 +2097,7 @@ var MAG = (function () {
                  * select = HTML element to be populated
                  * value_key = a single key as a string to use as value attribute for option
                  * text_keys = a string, list of strings or object with numbered keys, to use as text of option,
-                 *              falls through list until it finds one in the data or comma separates numbered fields is object
+                 *              falls through list until it finds one in the data or comma separates numbered fields if object
                  * selected_option_value = optional argument to say which of the options should be selected 
                  * add_select = a boolean as to wether to add 'select' with value 'none' to the head of the data list*/
                 populate_select: function (data, select, value_key, text_keys, selected_option_value, add_select, reactivate) {
