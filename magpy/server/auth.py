@@ -439,18 +439,11 @@ class AuthLoginHandler(tornado.web.RequestHandler,
                        tornado.auth.GoogleOAuth2Mixin,
                        DatabaseMixin):
     """Handle logins."""
-    # pylint: disable=E1101
-#    @tornado.web.asynchronous
-#     def get(self):
-#         if self.get_argument("openid.mode", None):
-#             self.get_authenticated_user(self.async_callback(self._on_auth))
-#             return
-#         self.authenticate_redirect()
-
     @tornado.gen.coroutine
     @tornado.web.asynchronous
     def get(self):
-        
+        print('arguments...')
+        print(self.request.arguments)
         if self.get_argument('code', False):
             next_page = self.get_argument('state', '/')
             access_token = yield self.get_authenticated_user(
