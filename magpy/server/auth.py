@@ -2,6 +2,7 @@
 
 import tornado.auth
 import tornado.web  # pylint: disable=W0404
+import tornado.gen
 import json
 from bson import json_util
 from bson.objectid import ObjectId
@@ -9,6 +10,7 @@ from functools import partial
 from magpy.server.database import DatabaseMixin
 from magpy.server.utils import dejsonify
 import six
+import base64
 
 # pylint: disable=R0904,W0613,R0913
 
@@ -434,44 +436,65 @@ class AuthLogoutHandler(tornado.web.RequestHandler):
 
 
 class AuthLoginHandler(tornado.web.RequestHandler,
-                       tornado.auth.GoogleMixin,
+                       tornado.auth.GoogleOAuth2Mixin,
                        DatabaseMixin):
     """Handle logins."""
-    # pylint: disable=E1101
+    @tornado.gen.coroutine
     @tornado.web.asynchronous
     def get(self):
-        if self.get_argument("openid.mode", None):
-            self.get_authenticated_user(self.async_callback(self._on_auth))
-            return
-        self.authenticate_redirect()
+        print('arguments...')
+        print(self.request.arguments)
+        if self.get_argument('code', False):
+            next_page = self.get_argument('state', '/')
+            access_token = yield self.get_authenticated_user(
+                redirect_uri = base64.b64decode(self.settings['login_redirect']),
+                code = self.get_argument('code'))
+            http = self.get_auth_http_client()
+            callback = partial(self._on_auth, next_page=next_page)
+            http.fetch("https://www.googleapis.com/oauth2/v2/userinfo", 
+                       callback,
+                       headers = {'Authorization': 'Bearer %s' % access_token['access_token']})        
+        else:
+            #in tornado 3.2 this does not return a Future so we can't use yield 
+            #docs say it should do so if we can get up to a later version of tornado it might be better
+            next_page = base64.b64encode(self.get_argument("next", "/"))
+            self.authorize_redirect(
+                redirect_uri = base64.b64decode(self.settings['login_redirect']),
+                client_id = self.settings['google_oauth']['key'],
+                scope = ['email', 'profile'],
+                response_type = 'code',
+                extra_params = {'approval_prompt': 'auto', 'state': next_page})
 
-    def _on_auth(self, user):
+    def _on_auth(self, resp, next_page):
         """Find the relevant user."""
+        user = json.loads(resp.body)
         if not user:
             raise tornado.web.HTTPError(500, "Google auth failed")
         coll = self.get_collection('_user')
-        callback = partial(self._process_user, user=user)
+        callback = partial(self._process_user, user=user, next_page=next_page)
         coll.find_one({'email': user["email"]},
                       callback=callback)
 
-    def _process_user(self, result, error, user):
+    def _process_user(self, result, error, user, next_page):
+        print(user)
         """Process the mongo user and the request user"""
         if result is None:
             # User does not exist yet, create account.
             coll = self.get_collection('_user')
+            callback = partial(self._set_cookie, next_page=next_page)
             coll.insert({'email': user["email"],
                          'name': user["name"],
                          'locale': user['locale'],
-                         'first_name': user['first_name'],
-                         'last_name': user['last_name'],
+                         'first_name': user['given_name'],
+                         'last_name': user['family_name'],
                          '_id': str(ObjectId())
                          },
-                        callback=self._set_cookie)
+                        callback=callback)
         else:
             # User exists
-            self._set_cookie(result["_id"])
+            self._set_cookie(result["_id"], None, next_page)
 
-    def _set_cookie(self, user_id, error=None):
+    def _set_cookie(self, user_id, error, next_page):
         """Set the cookie to the user_id."""
         self.set_secure_cookie("user", str(user_id))
-        self.redirect(self.get_argument("next", "/workspace/bare.html"))
+        self.redirect(base64.b64decode(next_page))
