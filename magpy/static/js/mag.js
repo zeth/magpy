@@ -2153,7 +2153,9 @@ var MAG = (function () {
                     if ((elem.tagName === 'INPUT' && (elem.type !== 'checkbox' && elem.type !== 'radio')) || elem.tagName === 'TEXTAREA') {
                         if (elem.value !== '' && typeof elem.value !== 'undefined' && elem.value !== null ) {
                             value = elem.value;
-                            if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
+                            if (MAG.ELEMENT.has_className(elem, 'stringify')) {
+                        	value = JSON.parse(value);
+                            } else if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
                                 value = value.split('|');
                             } else if (MAG.ELEMENT.has_className(elem, 'integer')) {
                                     value = parseInt(value, 10);
@@ -2284,13 +2286,13 @@ var MAG = (function () {
                 /** populates the provided field with the provided data */
                 populate_field: function (field, data) {
                     var i;
-                    if (
-                        (field.tagName === 'INPUT' &&
-                         field.type !== 'checkbox') ||
-                            field.tagName === 'TEXTAREA'
-                    ) {
+                    if ((field.tagName === 'INPUT' &&
+                    	field.type !== 'checkbox') ||
+                            field.tagName === 'TEXTAREA') {
                         if (MAG.TYPES.is_array(data)) {
                             field.value = data.join('|');
+                        } else if (MAG.TYPES.is_object(data)) {
+                        	field.value = JSON.stringify(data);
                         } else {
                             field.value = data;
                         }
@@ -2325,13 +2327,21 @@ var MAG = (function () {
                     prefix: used internally for dealing with embedded data*/
                 populate_simple_form: function (data, form, prefix) {
                     var field, key, i;
+                    console.log('populating form')
                     if (prefix === undefined) {
                         prefix = '';
                     }
                     for (key in data) {
                         if (data.hasOwnProperty(key)) {
                             if (MAG.TYPES.is_object(data[key])) {
-                                MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            	//then we might have a subobject or we might just need to stringify and store we can only tell from the class on the form item
+                            	field = document.getElementById(prefix + key);
+                            	console.log(field)
+                            	if (field && MAG.ELEMENT.has_className(field, 'stringify')) {
+                            	    MAG.FORMS.populate_field(field, data[key]);
+                            	} else {
+                            	    MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            	}
                             } else if (MAG.TYPES.is_array(data[key]) &&
                                        MAG.TYPES.is_object(data[key][0])) {
                                 MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
@@ -2385,8 +2395,19 @@ var MAG = (function () {
                     for (key in data) {
                         if (data.hasOwnProperty(key)) {
                             if (MAG.TYPES.is_object(data[key])) {
-                                prefix_list.push(key);
-                                MAG.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
+                        	//then we might have a subobject or we might just need to stringify and store we can only tell from the class on the form item
+                        	if (prefix_list.length > 0) {
+                        	    field = document.getElementById(prefix_list.join('_') + '_' + key);
+                        	} else {
+                        	    field = document.getElementById(key);
+                        	}
+                            	if (field && MAG.ELEMENT.has_className(field, 'stringify')) {
+                            	    MAG.FORMS.populate_field(field, data[key]);
+                            	} else {
+                            	    prefix_list.push(key);
+                            	    MAG.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
+                            	}
+                                
                                 //objectlist
                             } else if (MAG.TYPES.is_array(data[key]) && MAG.TYPES.is_object(data[key][0])) {
                                 prefix_list.push(key);
@@ -2406,7 +2427,7 @@ var MAG = (function () {
                                         try {
                                             MAG.FUNCTOOLS.get_function_from_string(fnstring)(data);
                                             field = document.getElementById(prefix_list.join('_') + '_' + key);
-                                            MAG.FORMS.populate_field(field,data[key]);
+                                            MAG.FORMS.populate_field(field, data[key]);
                                         } catch (err) {
                                             //ignore
                                         }
