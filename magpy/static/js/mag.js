@@ -400,29 +400,29 @@ var MAG = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        if (
-                            !MAG._STORAGE.is_stored_item(api_url) ||
-                                (options.force_reload === true)
-                        ) {
-                            options.success = MAG._REST.cache_api_data;
-                        } // End if !(MAG._STORAGE.is_stored_item(api_url))
+//                        if (
+//                            !MAG._STORAGE.is_stored_item(api_url) ||
+//                                (options.force_reload === true)
+//                        ) {
+//                            options.success = MAG._REST.cache_api_data;
+//                        } // End if 
 
                     } else {
                         // We have an optional callback so use it.
 
-                        if (
-                            MAG._STORAGE.is_stored_item(api_url) &&
-                                options.force_reload === false
-                        ) {
-                            options.success(
-                                MAG._STORAGE.get_data_from_storage(api_url)
-                            );
-                            return;
-                        }
+//                        if (
+//                            MAG._STORAGE.is_stored_item(api_url) &&
+//                                options.force_reload === false
+//                        ) {
+//                            options.success(
+//                                MAG._STORAGE.get_data_from_storage(api_url)
+//                            );
+//                            return;
+//                        }
 
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_data(data);
+//                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // if (typeof optional_callback === 'undefined')
@@ -486,9 +486,9 @@ var MAG = (function () {
                             return;
                         }
                         options.success = function (data) {
-                            MAG._REST.cache_api_list(data,
-                                                     resource,
-                                                     criteria);
+//                            MAG._REST.cache_api_list(data,
+//                                                     resource,
+//                                                     criteria);
                         };
                     } else {
                         if (
@@ -504,9 +504,9 @@ var MAG = (function () {
                         }
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_list(data,
-                                                     resource,
-                                                     criteria);
+//                            MAG._REST.cache_api_list(data,
+//                                                     resource,
+//                                                     criteria);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -540,11 +540,11 @@ var MAG = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = MAG._REST.cache_api_data;
+//                        options.success = MAG._REST.cache_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_data(data);
+//                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -585,11 +585,11 @@ var MAG = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = MAG._REST.cache_api_data;
+//                        options.success = MAG._REST.cache_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_data(data);
+//                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -2164,7 +2164,7 @@ var MAG = (function () {
                             } else if (MAG.ELEMENT.has_className(elem, 'boolean')) {
                             	//TODO: user value.toLowerCase() but for some reason
                             	//despite value being a string it gives typeerrors at the mo.
-                        		if (value === 'true') {
+                        	if (value === 'true') {
                             		value = true;
                             	}
                             	if (value === 'false') {
@@ -2327,7 +2327,6 @@ var MAG = (function () {
                     prefix: used internally for dealing with embedded data*/
                 populate_simple_form: function (data, form, prefix) {
                     var field, key, i;
-                    console.log('populating form')
                     if (prefix === undefined) {
                         prefix = '';
                     }
@@ -2336,7 +2335,6 @@ var MAG = (function () {
                             if (MAG.TYPES.is_object(data[key])) {
                             	//then we might have a subobject or we might just need to stringify and store we can only tell from the class on the form item
                             	field = document.getElementById(prefix + key);
-                            	console.log(field)
                             	if (field && MAG.ELEMENT.has_className(field, 'stringify')) {
                             	    MAG.FORMS.populate_field(field, data[key]);
                             	} else {
