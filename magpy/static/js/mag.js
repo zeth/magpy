@@ -2663,7 +2663,7 @@ var MAG = (function () {
                  * criteria: the search criteria to use for returning hits to display
                  * auto_filter: boolean to say whether or not to attempt to provide automatic sorting on fields
                  * preprocess: provide a preprocessing callback
-                 *
+                 * callback: provide a callback which will be run at the end of populate_show_instance_list_table 
                  */
                 //TODO: add a default sort to the info in citation_models and use it here
                 show_instance_list_table: function (model, container_id, options) {
@@ -2755,7 +2755,7 @@ var MAG = (function () {
                                             data, key_list, auto_sort, criteria,
                                             html, container, model, page_num,
                                             param_dict, model_json, page_size,
-                                            filter_key);
+                                            filter_key, options.callback);
                                     }
 
                                     if (typeof options.preprocess != "undefined") {
@@ -2774,7 +2774,7 @@ var MAG = (function () {
                 populate_show_instance_list_table: function(
                     data, key_list, auto_sort, criteria, html,
                     container, model, page_num, param_dict, model_json,
-                    page_size, filter_key) {
+                    page_size, filter_key, callback) {
                     var key;
                     if (data.results.length > 0) {
                         html = MAG.DISPLAY.create_instance_list_table(
@@ -2808,6 +2808,9 @@ var MAG = (function () {
                         }
                     } else {
                         document.getElementById('content').innerHTML = '<br/><br/>There are no entries in the database to view.';
+                    }
+                    if (typeof callback !== 'undefined') {
+                	callback();
                     }
                 },
 
