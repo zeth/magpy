@@ -1520,7 +1520,16 @@ var MAG = (function () {
                                     options.success(true);
                                 } else {
                                     if (mime == 'json') {
-                                        success_response = JSON.parse(xhr.responseText, true);
+                                	try {
+                                	    success_response = JSON.parse(xhr.responseText, true);
+                                	} catch (err) {
+                                	    if (typeof options.error !== 'undefined') {
+                                		options.error();
+                                		return;
+                                	    } else {
+                                		throw new Error("response format error");
+                                	    }
+                                	} 
                                     } else {
                                         success_response = xhr.responseText;
                                     }
