@@ -95,7 +95,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
     def _delete_files(self, response, error, file_fields, resource, ids):
         for json in response:
             for field in file_fields:
-                file = json[field].replace('/media/', '/srv/vmr/workspace/mediamanager/restricted/')
+                file = json[field].replace('/media/', '/srv/itsee/mediamanager/restricted/')
                 if os.path.isfile(file):
                     os.unlink(file)
         self._do_multiple_delete(ids, resource)
@@ -740,7 +740,7 @@ class ResourceTypeHandler(tornado.web.RequestHandler,
             assert instance[file].startswith('/media/')
             filename = instance[file][7:]
             real_content = base64.b64decode(content)
-            with open('/srv/vmr/workspace/mediamanager/restricted/' + filename,  'w') as f:
+            with open('/srv/itsee/mediamanager/restricted/' + filename,  'w') as f:
                 f.write(real_content)
             
         return self._return_data(instance)
@@ -933,7 +933,7 @@ class ResourceHandler(tornado.web.RequestHandler,
     def _delete_files(self, response, error, file_fields, resource, objectid):
         for json in response:
             for field in file_fields:
-                file = json[field].replace('/media/', '/srv/vmr/workspace/mediamanager/restricted/')
+                file = json[field].replace('/media/', '/srv/itsee/mediamanager/restricted/')
                 if os.path.isfile(file):
                     os.unlink(file)
         self._do_delete({'_model': resource, '_id': objectid})
@@ -1085,7 +1085,7 @@ class ResourceHandler(tornado.web.RequestHandler,
                                files=None):
         if '_delete' in files:
             for file in files['_delete']:
-                filepath = file.replace('/media/', '/srv/vmr/workspace/mediamanager/restricted/')
+                filepath = file.replace('/media/', '/srv/itsee/mediamanager/restricted/')
                 if os.path.isfile(filepath):
                     os.unlink(filepath)
         del files['_delete']
@@ -1097,7 +1097,7 @@ class ResourceHandler(tornado.web.RequestHandler,
             assert instance[file].startswith('/media/')
             filename = instance[file][7:]
             real_content = base64.b64decode(content)
-            with open('/srv/vmr/workspace/mediamanager/restricted/' + filename,  'w') as f:
+            with open('/srv/itsee/mediamanager/restricted/' + filename,  'w') as f:
                 f.write(real_content)
             
         return self.return_instance(instance)

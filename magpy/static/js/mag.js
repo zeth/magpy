@@ -400,29 +400,29 @@ var MAG = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        if (
-                            !MAG._STORAGE.is_stored_item(api_url) ||
-                                (options.force_reload === true)
-                        ) {
-                            options.success = MAG._REST.cache_api_data;
-                        } // End if !(MAG._STORAGE.is_stored_item(api_url))
+//                        if (
+//                            !MAG._STORAGE.is_stored_item(api_url) ||
+//                                (options.force_reload === true)
+//                        ) {
+//                            options.success = MAG._REST.cache_api_data;
+//                        } // End if 
 
                     } else {
                         // We have an optional callback so use it.
 
-                        if (
-                            MAG._STORAGE.is_stored_item(api_url) &&
-                                options.force_reload === false
-                        ) {
-                            options.success(
-                                MAG._STORAGE.get_data_from_storage(api_url)
-                            );
-                            return;
-                        }
+//                        if (
+//                            MAG._STORAGE.is_stored_item(api_url) &&
+//                                options.force_reload === false
+//                        ) {
+//                            options.success(
+//                                MAG._STORAGE.get_data_from_storage(api_url)
+//                            );
+//                            return;
+//                        }
 
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_data(data);
+//                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // if (typeof optional_callback === 'undefined')
@@ -486,9 +486,9 @@ var MAG = (function () {
                             return;
                         }
                         options.success = function (data) {
-                            MAG._REST.cache_api_list(data,
-                                                     resource,
-                                                     criteria);
+//                            MAG._REST.cache_api_list(data,
+//                                                     resource,
+//                                                     criteria);
                         };
                     } else {
                         if (
@@ -504,9 +504,9 @@ var MAG = (function () {
                         }
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_list(data,
-                                                     resource,
-                                                     criteria);
+//                            MAG._REST.cache_api_list(data,
+//                                                     resource,
+//                                                     criteria);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -540,11 +540,11 @@ var MAG = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = MAG._REST.cache_api_data;
+//                        options.success = MAG._REST.cache_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_data(data);
+//                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -585,11 +585,11 @@ var MAG = (function () {
                     if (typeof options.success === 'undefined') {
                         // No optional callback
                         // Just cache the resource
-                        options.success = MAG._REST.cache_api_data;
+//                        options.success = MAG._REST.cache_api_data;
                     } else {
                         callback = options.success;
                         options.success = function (data) {
-                            MAG._REST.cache_api_data(data);
+//                            MAG._REST.cache_api_data(data);
                             callback(data);
                         };
                     } // End if (typeof optional_callback === 'undefined')
@@ -1520,7 +1520,16 @@ var MAG = (function () {
                                     options.success(true);
                                 } else {
                                     if (mime == 'json') {
-                                        success_response = JSON.parse(xhr.responseText, true);
+                                	try {
+                                	    success_response = JSON.parse(xhr.responseText, true);
+                                	} catch (err) {
+                                	    if (typeof options.error !== 'undefined') {
+                                		options.error();
+                                		return;
+                                	    } else {
+                                		throw new Error("response format error");
+                                	    }
+                                	} 
                                     } else {
                                         success_response = xhr.responseText;
                                     }
@@ -2153,7 +2162,9 @@ var MAG = (function () {
                     if ((elem.tagName === 'INPUT' && (elem.type !== 'checkbox' && elem.type !== 'radio')) || elem.tagName === 'TEXTAREA') {
                         if (elem.value !== '' && typeof elem.value !== 'undefined' && elem.value !== null ) {
                             value = elem.value;
-                            if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
+                            if (MAG.ELEMENT.has_className(elem, 'stringify')) {
+                        	value = JSON.parse(value);
+                            } else if (MAG.ELEMENT.has_className(elem, 'stringlist')) {
                                 value = value.split('|');
                             } else if (MAG.ELEMENT.has_className(elem, 'integer')) {
                                     value = parseInt(value, 10);
@@ -2162,7 +2173,7 @@ var MAG = (function () {
                             } else if (MAG.ELEMENT.has_className(elem, 'boolean')) {
                             	//TODO: user value.toLowerCase() but for some reason
                             	//despite value being a string it gives typeerrors at the mo.
-                        		if (value === 'true') {
+                        	if (value === 'true') {
                             		value = true;
                             	}
                             	if (value === 'false') {
@@ -2284,13 +2295,13 @@ var MAG = (function () {
                 /** populates the provided field with the provided data */
                 populate_field: function (field, data) {
                     var i;
-                    if (
-                        (field.tagName === 'INPUT' &&
-                         field.type !== 'checkbox') ||
-                            field.tagName === 'TEXTAREA'
-                    ) {
+                    if ((field.tagName === 'INPUT' &&
+                    	field.type !== 'checkbox') ||
+                            field.tagName === 'TEXTAREA') {
                         if (MAG.TYPES.is_array(data)) {
                             field.value = data.join('|');
+                        } else if (MAG.TYPES.is_object(data)) {
+                        	field.value = JSON.stringify(data);
                         } else {
                             field.value = data;
                         }
@@ -2331,7 +2342,13 @@ var MAG = (function () {
                     for (key in data) {
                         if (data.hasOwnProperty(key)) {
                             if (MAG.TYPES.is_object(data[key])) {
-                                MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            	//then we might have a subobject or we might just need to stringify and store we can only tell from the class on the form item
+                            	field = document.getElementById(prefix + key);
+                            	if (field && MAG.ELEMENT.has_className(field, 'stringify')) {
+                            	    MAG.FORMS.populate_field(field, data[key]);
+                            	} else {
+                            	    MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
+                            	}
                             } else if (MAG.TYPES.is_array(data[key]) &&
                                        MAG.TYPES.is_object(data[key][0])) {
                                 MAG.FORMS.populate_simple_form(data[key], form, prefix + key + '_');
@@ -2385,8 +2402,19 @@ var MAG = (function () {
                     for (key in data) {
                         if (data.hasOwnProperty(key)) {
                             if (MAG.TYPES.is_object(data[key])) {
-                                prefix_list.push(key);
-                                MAG.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
+                        	//then we might have a subobject or we might just need to stringify and store we can only tell from the class on the form item
+                        	if (prefix_list.length > 0) {
+                        	    field = document.getElementById(prefix_list.join('_') + '_' + key);
+                        	} else {
+                        	    field = document.getElementById(key);
+                        	}
+                            	if (field && MAG.ELEMENT.has_className(field, 'stringify')) {
+                            	    MAG.FORMS.populate_field(field, data[key]);
+                            	} else {
+                            	    prefix_list.push(key);
+                            	    MAG.FORMS.populate_complex_form(data[key], form, js_name_space, prefix_list);
+                            	}
+                                
                                 //objectlist
                             } else if (MAG.TYPES.is_array(data[key]) && MAG.TYPES.is_object(data[key][0])) {
                                 prefix_list.push(key);
@@ -2406,7 +2434,7 @@ var MAG = (function () {
                                         try {
                                             MAG.FUNCTOOLS.get_function_from_string(fnstring)(data);
                                             field = document.getElementById(prefix_list.join('_') + '_' + key);
-                                            MAG.FORMS.populate_field(field,data[key]);
+                                            MAG.FORMS.populate_field(field, data[key]);
                                         } catch (err) {
                                             //ignore
                                         }
@@ -2644,7 +2672,7 @@ var MAG = (function () {
                  * criteria: the search criteria to use for returning hits to display
                  * auto_filter: boolean to say whether or not to attempt to provide automatic sorting on fields
                  * preprocess: provide a preprocessing callback
-                 *
+                 * callback: provide a callback which will be run at the end of populate_show_instance_list_table 
                  */
                 //TODO: add a default sort to the info in citation_models and use it here
                 show_instance_list_table: function (model, container_id, options) {
@@ -2736,7 +2764,7 @@ var MAG = (function () {
                                             data, key_list, auto_sort, criteria,
                                             html, container, model, page_num,
                                             param_dict, model_json, page_size,
-                                            filter_key);
+                                            filter_key, options.callback);
                                     }
 
                                     if (typeof options.preprocess != "undefined") {
@@ -2755,7 +2783,7 @@ var MAG = (function () {
                 populate_show_instance_list_table: function(
                     data, key_list, auto_sort, criteria, html,
                     container, model, page_num, param_dict, model_json,
-                    page_size, filter_key) {
+                    page_size, filter_key, callback) {
                     var key;
                     if (data.results.length > 0) {
                         html = MAG.DISPLAY.create_instance_list_table(
@@ -2789,6 +2817,9 @@ var MAG = (function () {
                         }
                     } else {
                         document.getElementById('content').innerHTML = '<br/><br/>There are no entries in the database to view.';
+                    }
+                    if (typeof callback !== 'undefined') {
+                	callback();
                     }
                 },
 
